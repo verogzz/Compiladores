@@ -1,0 +1,90 @@
+COMPILER Solstice
+/*--------------------------------------------------------------------------*/
+CHARACTERS
+  letra = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  letraU = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
+  digito = "0123456789".
+  rc  = '\r'.
+  sl  = '\n'.
+  tab = '\t'.
+  otrosC = ANY - '/' - '*'.
+  otrosS = ANY - '"' - rc - sl - tab.
+	
+TOKENS
+  idV = '_'letra {letra | digito}. /* Id Variable */
+  idM = '#' letra {letra | digito}. /* Id Metodo */
+  idO = letraU {letra | digito}. /* Id Objeto Nombre de la Clase */
+  idC = '$' letraU {letra | digito}. /* Id Constructor */
+  cteI = digito {digito}.
+  cteD = digito {digito} "." digito {digito} .
+  cteS = '\"' otrosS {otrosS} '\"'.
+  cteB = "true" | "false".
+  tCla = "class".
+  tPub = "public".
+  tPri = "private".	
+  tPro = "protect".	
+  tRet = "return".		
+  tStr = "string".		
+  tInt = "int". 		
+  tDou = "double".
+  tBoo = "bool".		
+  tNew = "new".		
+  tVoi = "void".		
+  tCon = "if" | "?".		
+  tEls = "else" | ":".
+  tEif = "elseif" | ":?".  
+  tWhi = "while" | "@".
+  tExt = '-''>'.
+  tMai = "main".
+  tLec = '>''>'.
+  tEsc = '<''<'.
+  tInc = '+''+'.
+  tDec = '-''-'.
+  tMay = '>''='.
+  tMen = '<''='.
+  tDif = '<''>'.
+  tEqu = '=''='.
+
+PRAGMAS
+	comentarios = "/*" {'/' | otrosC | '*' {'*'} otrosC} '*' {'*'} '/'.
+	
+IGNORE rc + sl + tab
+
+PRODUCTIONS
+	Solstice = Class Main.
+	Class = tCla idO [tExt idO] '{' Bloque '}' [Class].
+	Bloque = Atributo{Atributo} Constructor {Vis (MetodoR | MetodoV)}.
+	Atributo = Vis Tipo idV ';'.
+	Vis = tPub | tPri | tPro.
+	Tipo = tInt | tDou | tStr | tBoo.
+	Constructor = idC '(' [Param] ')' '{' {Init} '}'.
+	Param = Tipo idV [',' Param].
+	Init = idV '=' CTES ';'.
+	CTES = idV | CTE.
+	CTE = cteS | cteI | cteD | cteB.
+	Main = tMai '(' ')' '{' {Decl} {Estatuto} '}'.
+	MetodoR = Tipo idM '(' Param ')' '{' {Decl} {Estatuto} Return '}'.
+	MetodoV = tVoi idM '(' Param ')' '{' {Decl} {Estatuto} '}'.
+	Decl = (New | Tipo idV( '=' CTES | Arr) {',' idV( '=' CTES | Arr)}) ';'.
+	Arr = '[' (idV | cteI) ']'.
+	New = idO idV '=' tNew idC '(' [Lista] ')'.
+	Lista = idV [',' Lista].
+	Return = tRet Expresion ';'.
+	Estatuto = (idV (Asig | ObjM)) | Ciclo | Esc | Lec | ConG.
+	Ciclo = tWhi '(' Expresion ')' '{' {Estatuto} '}'.
+	Asig = (tInc | tDec | Asig2) | Arr Asig2 ';'.
+	Asig2 = '=' (idV (ObjM | Arr))| Expresion.
+	ObjM = (Metodo | Reg) ';'.
+	Reg = '.' (Metodo | idV).
+	Metodo = idM '(' [Lista] ')'.
+	Expresion = Exp [(tMay | tMen | tDif | '<' | '>' | tEqu) Exp].
+	Exp = Termino [('+' | '-') Termino].
+	Termino = Factor [('*' | '/' | '%') Factor].
+	Factor =  ['~'|'-'] ('(' ExpOY ')' | idV (CTE | ObjM)).
+	ExpOY = Expresion [('&' | '|') Expresion].
+	ConG = Con [Con2].
+	Con = tCon '(' Expresion ')' '{' Estatuto {Estatuto} '}' {tEif '(' Expresion ')' '{' Estatuto {Estatuto} '}'}.
+	Con2 = tEls '{' Estatuto {Estatuto} '}'.
+	Lec = tLec '(' idV ')' ';'.
+	Esc = tEsc '(' Expresion {'^' Expresion} ')' ';'.
+END Solstice.	
