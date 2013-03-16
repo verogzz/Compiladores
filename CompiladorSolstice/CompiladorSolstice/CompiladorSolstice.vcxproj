@@ -84,10 +84,13 @@
     <None Include="Solstice.atg" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cubo.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Scanner.h" />
+    <ClInclude Include="Tabla.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Cubo.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Solstice.cpp" />
