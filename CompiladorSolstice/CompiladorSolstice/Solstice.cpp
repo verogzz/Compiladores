@@ -3,7 +3,6 @@
 #include <map>
 #include "Parser.h"
 #include "Scanner.h"
-#include "Cubo.h"
 #include "Tabla.h"
 #include <sys/timeb.h>
 #include <wchar.h>
@@ -13,10 +12,22 @@ using namespace std;
 int main (int argc, char *argv[]) {
 	if (argc == 2) {
 		wchar_t *fileName = coco_string_create(argv[1]);
-		Tabla dirC;
+		
 		Scanner *scanner = new Scanner(fileName);	
 		Parser *parser = new Parser(scanner);
+		parser->Parse();
+
+		//dir.insert(TABLA::value_type("chingar", Attribute(1, 2, 0)));
+		//dir.insert(TABLA::value_type("chingar", Attribute(1, 2, 1)));
+		//cout << (dir.find("chingar") == dir.end())<< '\n';
+		//cout << (dir.find("chi") == dir.end()) << '\n';
 		
+		for(SIT it = parser->dir.begin(); it != parser->dir.end(); it++){
+			cout<< it->first << '\t' << it->second.att_vis << '\n';
+		//SIT it = parser->dir.begin();
+			for(VMAP::iterator it2 = it->second.vars.begin(); it2 != it->second.vars.end(); it2++)
+				cout<< '\t' <<it2->first << '\t' << it2->second.var_type << '\n';
+		}
 		//Metodo metodoP = Metodo(2, 3);
 		//dirC.publico[dirC.conv(L"chingar")] = metodoP;
 		

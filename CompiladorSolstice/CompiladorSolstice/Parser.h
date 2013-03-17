@@ -3,6 +3,8 @@
 #if !defined(COCO_PARSER_H__)
 #define COCO_PARSER_H__
 
+#include "Tabla.h"
+#include <iostream>
 
 
 #include "Scanner.h"
@@ -80,6 +82,20 @@ public:
 
 	Token *t;			// last recognized token
 	Token *la;			// lookahead token
+
+TABLA dir;
+int type;
+int vis;
+string name;
+string clase;
+bool err;
+
+string conv(wchar_t* x){
+	std::wstring ws(x);
+	string s(ws.begin(), ws.end());
+	s.assign(ws.begin(), ws.end());
+	return s;
+};
 
 
 

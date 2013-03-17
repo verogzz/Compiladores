@@ -1,3 +1,5 @@
+#ifndef TABLA_H
+#define TABLA_H
 #include <stdio.h>
 #include <map>
 #include <string>
@@ -5,67 +7,53 @@
 
 using namespace std;
 
-class Vis {
-public:
-	enum {
-		PRIVATE = 0,
-		PROCTECT = 1,
-		PUBLIC = 2
-	};
-};
+#define PRIVATE 0
+#define PROTECT 1
+#define PUBLIC 2
 
-class Type{
-public:
-	enum {
-		INT = 0,
-		DOUBLE = 1,
-		STRING = 2,
-		BOOLEAN = 3,
-		OBJECT = 4
-	};
-};
+#define INT 0
+#define DOUBLE 1
+#define STRING 2
+#define BOOLEAN 3
+#define OBJECT 4
+#define VOID 5
+#define MAIN 6
+
+#define ATM 0
+#define ARR 1
+
+#define GLOBAL 0
+#define LOCAL 1
+
+#define ATT 0
+#define MET 1
+
+#define TRUE 1
+#define FALSE 0
 
 class Variable {
 public: 
-	int var_vis;
 	int var_type;
 	int var_dim;
-	
-	Variable(int v, int t, int d){
-		var_vis = v;
-		var_type = t;
-		var_dim = d;
-	};
+	Variable();
+	Variable(int t, int d);
 };
 
 typedef std::map<string , Variable> VMAP;
 
-class Metodo {
+class Attribute {
 public:
-	int m_vis;
-	int m_type;
+	int att_vis;
+	int att_type;
+	int att_mtd;
+	string clase;
 	VMAP vars;
-	Metodo(){
-		m_vis = 0;
-		m_type = 0;
-	};
-	Metodo(int v, int t){
-		m_vis = v;
-		m_type = t;
-	};
+	Attribute();
+	Attribute(int vis, int type, int a_type, string clase);
+	string conv(wchar_t* x);
 };
 
-typedef std::map<string, Metodo> SMAP;
+typedef std::map<string, Attribute> TABLA;
+typedef TABLA::iterator SIT;
 
-class Tabla {
-public:
-	SMAP publico;
-	SMAP privado;
-	SMAP protegido;
-	string conv(wchar_t* x){
-		std::wstring ws(x);
-		string s(ws.begin(), ws.end());
-		s.assign(ws.begin(), ws.end());
-		return s;
-	};
-};
+#endif

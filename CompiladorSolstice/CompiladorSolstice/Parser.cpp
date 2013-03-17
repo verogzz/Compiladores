@@ -71,6 +71,7 @@ void Parser::Solstice() {
 void Parser::Class() {
 		Expect(_tCla);
 		Expect(_idO);
+		clase = conv(t->val); 
 		if (la->kind == _tExt) {
 			Get();
 			Expect(_idO);
@@ -85,6 +86,15 @@ void Parser::Class() {
 
 void Parser::Main() {
 		Expect(_tMai);
+		name = conv(t->val);
+		if(dir.find(name) == dir.end()){
+		dir.insert(TABLA::value_type(name, Attribute(vis, MAIN, 0, "")));
+		vis = type = -1;
+		} else {
+		cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
+		err = TRUE;
+		}
+		
 		Expect(38 /* "(" */);
 		Expect(39 /* ")" */);
 		Expect(40 /* "{" */);
@@ -165,28 +175,45 @@ void Parser::Atributo() {
 		Vis();
 		Tipo();
 		Expect(_idV);
+		name = conv(t->val);
+		if(dir.find(name) == dir.end()){
+		dir.insert(TABLA::value_type(name, Attribute(vis, type, 0, clase)));
+		name = "";
+		vis = type = -1;
+		} else {
+		cout << "PREVIOUSLY DECLARED ATTRIBUTE: " << name << '\n';
+		err = TRUE;
+		}
+		
 		Expect(36 /* ";" */);
 }
 
 void Parser::Vis() {
 		if (la->kind == _tPub) {
 			Get();
+			vis = PUBLIC; 
 		} else if (la->kind == _tPri) {
 			Get();
+			vis = PRIVATE; 
 		} else if (la->kind == _tPro) {
 			Get();
+			vis = PROTECT; 
 		} else SynErr(58);
 }
 
 void Parser::Tipo() {
 		if (la->kind == _tInt) {
 			Get();
+			type = INT; 
 		} else if (la->kind == _tDou) {
 			Get();
+			type = DOUBLE; 
 		} else if (la->kind == _tStr) {
 			Get();
+			type = STRING; 
 		} else if (la->kind == _tBoo) {
 			Get();
+			type = BOOLEAN; 
 		} else SynErr(59);
 }
 
@@ -223,6 +250,15 @@ void Parser::Constructor() {
 void Parser::MetodoR() {
 		Tipo();
 		Expect(_idM);
+		name = conv(t->val);
+		if(dir.find(name) == dir.end()){
+		dir.insert(TABLA::value_type(name, Attribute(vis, type, 1, clase)));
+		vis = type = -1;
+		} else {
+		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
+		err = TRUE;
+		}
+		
 		Expect(38 /* "(" */);
 		if (StartOf(4)) {
 			Param();
@@ -237,11 +273,21 @@ void Parser::MetodoR() {
 		}
 		Return();
 		Expect(41 /* "}" */);
+		name = "";
 }
 
 void Parser::MetodoV() {
 		Expect(_tVoi);
 		Expect(_idM);
+		name = conv(t->val);
+		if(dir.find(name) == dir.end()){
+		dir.insert(TABLA::value_type(name, Attribute(vis, VOID, 1, clase)));
+		vis = type = -1;
+		} else {
+		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
+		err = TRUE;
+		}
+		
 		Expect(38 /* "(" */);
 		if (StartOf(4)) {
 			Param();
@@ -255,6 +301,7 @@ void Parser::MetodoV() {
 			Estatuto();
 		}
 		Expect(41 /* "}" */);
+		name = "";
 }
 
 void Parser::Ciclo() {
@@ -348,8 +395,17 @@ void Parser::ConG() {
 }
 
 void Parser::Param() {
+		string nameL; 
 		Tipo();
 		Expect(_idV);
+		nameL = conv(t->val);
+		if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
+		dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+		} else {
+		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+		err = TRUE;
+		}
+		
 		if (la->kind == 42 /* "," */) {
 			Get();
 			Param();
@@ -384,11 +440,21 @@ void Parser::CTES() {
 }
 
 void Parser::Decl() {
+		string nameL;
 		if (la->kind == _idO) {
 			New();
 		} else if (StartOf(4)) {
 			Tipo();
 			Expect(_idV);
+			nameL = conv(t->val);
+			if(( dir.find(nameL) == dir.end()) && 
+			(dir[name].vars.find(nameL) == dir[name].vars.end())){
+			dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+			} else {
+			cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+			err = TRUE;
+			}
+			
 			if (la->kind == 37 /* "=" */) {
 				Get();
 				CTES();
@@ -398,11 +464,28 @@ void Parser::Decl() {
 			while (la->kind == 42 /* "," */) {
 				Get();
 				Expect(_idV);
+				nameL = conv(t->val);
+				if( (dir.find(nameL) == dir.end()) && 
+				(dir[name].vars.find(nameL) == dir[name].vars.end())){
+				dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+				} else {
+				cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+				err = TRUE;
+				}
+				
 				if (la->kind == 37 /* "=" */) {
 					Get();
 					CTES();
 				} else if (la->kind == 34 /* "[" */) {
 					Arr();
+					nameL = conv(t->val);
+					if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
+					dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 1)));
+					} else {
+					cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+					err = TRUE;
+					}
+					
 				} else SynErr(66);
 			}
 		} else SynErr(67);
@@ -410,8 +493,17 @@ void Parser::Decl() {
 }
 
 void Parser::New() {
+		string nameL; 
 		Expect(_idO);
 		Expect(_idV);
+		nameL = conv(t->val);
+		if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
+		dir[name].vars.insert(VMAP::value_type(nameL, Variable(4, 0)));
+		} else {
+		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+		err = TRUE;
+		}
+		
 		Expect(37 /* "=" */);
 		Expect(_tNew);
 		Expect(_idC);
