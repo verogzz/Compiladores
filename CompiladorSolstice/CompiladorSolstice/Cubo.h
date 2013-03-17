@@ -2,7 +2,7 @@
 #include<string>
 
 class Cubo {
-	public:
+public:
 	Cubo(void);
-	int cubo;
+	int cubo[4][4][14];
 };

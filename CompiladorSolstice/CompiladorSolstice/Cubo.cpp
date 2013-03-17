@@ -2,7 +2,6 @@
 #include "Cubo.h"
 
 Cubo::Cubo(void) {
-	int cubo[4][4][14];
 	/* Cubo[OP1][OP2][OPR] = TIPO
 	
 	OP#
@@ -30,27 +29,27 @@ Cubo::Cubo(void) {
 
 	// INT
 	cubo[0][0][0] = 0; // int + int = int
-	cubo[0][1][0] = 1; // int + double = double
+	cubo[0][1][0] = -1; // int + double = error
 	cubo[0][2][0] = -1; // int + string = error
 	cubo[0][3][0] = -1; // int + bool = error
 	
 	cubo[0][0][1] = 0; // int - int = int
-	cubo[0][1][1] = 1; // int - double = double
+	cubo[0][1][1] = -1; // int - double = error
 	cubo[0][2][1] = -1; // int - string = error
 	cubo[0][3][1] = -1; // int - bool = error
 	
 	cubo[0][0][2] = 0; // int * int = int
-	cubo[0][1][2] = 1; // int * double = double
+	cubo[0][1][2] = -1; // int * double = error
 	cubo[0][2][2] = -1; // int * string = error
 	cubo[0][3][2] = -1; // int * bool = error
 	
 	cubo[0][0][3] = 0; // int / int = int
-	cubo[0][1][3] = 1; // int / double = double
+	cubo[0][1][3] = -1; // int / double = error
 	cubo[0][2][3] = -1; // int / string = error
 	cubo[0][3][3] = -1; // int / bool = error
 
 	cubo[0][0][4] = 0; // int % int = int
-	cubo[0][1][4] = 1; // int % double = double
+	cubo[0][1][4] = -1; // int % double = error
 	cubo[0][2][4] = -1; // int % string = error
 	cubo[0][3][4] = -1; // int % bool = error
 
@@ -65,32 +64,32 @@ Cubo::Cubo(void) {
 	cubo[0][3][6] = -1; // int | bool = error
 	
 	cubo[0][0][7] = 3; // int < int = bool
-	cubo[0][1][7] = 3; // int < double = bool
+	cubo[0][1][7] = -1; // int < double = error
 	cubo[0][2][7] = -1; // int < string = error
 	cubo[0][3][7] = -1; // int < bool = error
 	
 	cubo[0][0][8] = 3; // int > int = bool
-	cubo[0][1][8] = 3; // int > double = bool
+	cubo[0][1][8] = -1; // int > double = error
 	cubo[0][2][8] = -1; // int > string = error
 	cubo[0][3][8] = -1; // int > bool = error
 	
 	cubo[0][0][9] = 3; // int == int = bool
-	cubo[0][1][9] = 3; // int == double = bool
+	cubo[0][1][9] = -1; // int == double = error
 	cubo[0][2][9] = -1; // int == string = error
 	cubo[0][3][9] = -1; // int == bool = error
 	
 	cubo[0][0][10] = 3; // int <> int = bool
-	cubo[0][1][10] = 3; // int <> double = bool
+	cubo[0][1][10] = -1; // int <> double = error
 	cubo[0][2][10] = -1; // int <> string = error
 	cubo[0][3][10] = -1; // int <> bool = error
 	
 	cubo[0][0][11] = 3; // int >= int = bool
-	cubo[0][1][11] = 3; // int >= double = bool
+	cubo[0][1][11] = -1; // int >= double = error
 	cubo[0][2][11] = -1; // int >= string = error
 	cubo[0][3][11] = -1; // int >= bool = error
 	
 	cubo[0][0][12] = 3; // int <= int = bool
-	cubo[0][1][12] = 3; // int <= double = bool
+	cubo[0][1][12] = -1; // int <= double = error
 	cubo[0][2][12] = -1; // int <= string = error
 	cubo[0][3][12] = -1; // int <= bool = error
 
@@ -100,27 +99,27 @@ Cubo::Cubo(void) {
 	cubo[0][3][13] = 2; // int ^ bool = string
 	
 	// DOUBLE
-	cubo[1][0][0] = 1; // double + int = double
+	cubo[1][0][0] = -1; // double + int = error
 	cubo[1][1][0] = 1; // double + double = double
 	cubo[1][2][0] = -1; // double + string = error
 	cubo[1][3][0] = -1; // double + bool = error
 	
-	cubo[1][0][1] = 1; // double - int = double
+	cubo[1][0][1] = -1; // double - int = error
 	cubo[1][1][1] = 1; // double - double = double
 	cubo[1][2][1] = -1; // double - string = error
 	cubo[1][3][1] = -1; // double - bool = error
 
-	cubo[1][0][2] = 1; // double * int = double
+	cubo[1][0][2] = -1; // double * int = error
 	cubo[1][1][2] = 1; // double * double = double
 	cubo[1][2][2] = -1; // double * string = error
 	cubo[1][3][2] = -1; // double * bool = error
 
-	cubo[1][0][3] = 1; // double / int = double
+	cubo[1][0][3] = -1; // double / int = error
 	cubo[1][1][3] = 1; // double / double = double
 	cubo[1][2][3] = -1; // double / string = error
 	cubo[1][3][3] = -1; // double / bool = error
 	
-	cubo[1][0][4] = 1; // double % int = double
+	cubo[1][0][4] = -1; // double % int = error
 	cubo[1][1][4] = 1; // double % double = double
 	cubo[1][2][4] = -1; // double % string = error
 	cubo[1][3][4] = -1; // double % bool = error
@@ -135,32 +134,32 @@ Cubo::Cubo(void) {
 	cubo[1][2][6] = -1; // double | string = error
 	cubo[1][3][6] = -1; // double | bool = error
 	
-	cubo[1][0][7] = 3; // double < int = bool
+	cubo[1][0][7] = -1; // double < int = error
 	cubo[1][1][7] = 3; // double < double = bool
 	cubo[1][2][7] = -1; // double < string = string
 	cubo[1][3][7] = -1; // double < bool = string
 	
-	cubo[1][0][8] = 3; // double > int = bool
+	cubo[1][0][8] = -1; // double > int = error
 	cubo[1][1][8] = 3; // double > double = bool
 	cubo[1][2][8] = -1; // double > string = error
 	cubo[1][3][8] = -1; // double > bool = error
 	
-	cubo[1][0][9] = 3; // double == int = bool
+	cubo[1][0][9] = -1; // double == int = error
 	cubo[1][1][9] = 3; // double == double = bool
 	cubo[1][2][9] = -1; // double == string = error
 	cubo[1][3][9] = -1; // double == bool = error
 	
-	cubo[1][0][10] = 3; // double <> int = bool
+	cubo[1][0][10] = -1; // double <> int = error
 	cubo[1][1][10] = 3; // double <> double = double
 	cubo[1][2][10] = -1; // double <> string = error
 	cubo[1][3][10] = -1; // double <> bool = error
 	
-	cubo[1][0][11] = 3; // double >= int = bool
+	cubo[1][0][11] = -1; // double >= int = error
 	cubo[1][1][11] = 3; // double >= double = bool
 	cubo[1][2][11] = -1; // double >= string = error
 	cubo[1][3][11] = -1; // double >= bool = error
 	
-	cubo[1][0][12] = 3; // double <= int = bool
+	cubo[1][0][12] = -1; // double <= int = error
 	cubo[1][1][12] = 3; // double <= double = bool
 	cubo[1][2][12] = -1; // double <= string = error
 	cubo[1][3][12] = -1; // double <= bool = error
@@ -311,4 +310,6 @@ Cubo::Cubo(void) {
 	cubo[3][1][13] = 2; // bool ^ double = string
 	cubo[3][2][13] = 2; // bool ^ string = string
 	cubo[3][3][13] = 2; // bool ^ bool = string
+
+	Cubo::cubo[1][1][1];
 }

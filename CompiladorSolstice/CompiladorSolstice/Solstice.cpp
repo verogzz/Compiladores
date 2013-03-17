@@ -4,6 +4,7 @@
 #include "Parser.h"
 #include "Scanner.h"
 #include "Tabla.h"
+#include "Cubo.h"
 #include <sys/timeb.h>
 #include <wchar.h>
 #include <utility>
@@ -28,6 +29,9 @@ int main (int argc, char *argv[]) {
 			for(VMAP::iterator it2 = it->second.vars.begin(); it2 != it->second.vars.end(); it2++)
 				cout<< '\t' <<it2->first << '\t' << it2->second.var_type << '\n';
 		}
+		Cubo x = Cubo();
+		int i = x.cubo[1][1][1];
+		cout << i;
 		//Metodo metodoP = Metodo(2, 3);
 		//dirC.publico[dirC.conv(L"chingar")] = metodoP;
 		
