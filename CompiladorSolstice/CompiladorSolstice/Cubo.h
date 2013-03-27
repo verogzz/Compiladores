@@ -1,3 +1,5 @@
+#ifndef CUBO_H
+#define CUBO_H
 #include<iostream>
 #include<string>
 
@@ -6,3 +8,5 @@ public:
 	Cubo(void);
 	int cubo[4][4][14];
 };
+
+#endif

@@ -1,9 +1,19 @@
 #include "Tabla.h"
+#include "Cubo.h"
 #include <iostream>
 COMPILER Solstice
 TABLA dir;
+Cubo x;
+stack<int> oper;
+stack<CVariable> operandos;
+stack<int> saltos;
+vector<Cuadruplo> gen;
+vector<Cuadruplo>::iterator it;
 int type;
+int ctype;
 int vis;
+int dim;
+int avail;
 string name;
 string clase;
 bool err;
@@ -66,13 +76,13 @@ PRAGMAS
 IGNORE rc + sl + tab
 
 PRODUCTIONS
-	Solstice = Class Main.
+	Solstice = (. x = Cubo(); .)Class Main.
 	
-	Arr = '[' (idV | cteI) ']'.
+	Arr = '[' (idV | cteI) ']' (. dim = 1; .).
 	
 	Asig = ((tInc | tDec | Asig2) | Arr Asig2) ';'.
 	
-	Asig2 = '=' Expresion.
+	Asig2 = '=' ExpOY.
 	
 	Atributo = Vis Tipo idV (.	name = conv(t->val);
 								if(dir.find(name) == dir.end()){
@@ -87,71 +97,109 @@ PRODUCTIONS
 	
 	Bloque = Atributo{Atributo} Constructor {Vis (MetodoR | MetodoV)}.
 	
-	Ciclo = tWhi '(' Expresion ')' '{' {Estatuto} '}'.
+	Ciclo = tWhi '(' ExpOY ')' '{' {Estatuto} '}'.
 	
 	Class = tCla idO (. clase = conv(t->val); .) [tExt idO] '{' Bloque '}' [Class].
 	
-	Con = tCon '(' Expresion ')' '{' Estatuto {Estatuto} '}' {tEif '(' Expresion ')' '{' Estatuto {Estatuto} '}'}.
+	Con = tCon '(' ExpOY ')' '{' Estatuto {Estatuto} '}' {tEif '(' ExpOY ')' '{' Estatuto {Estatuto} '}'}.
 	
 	Con2 = tEls '{' Estatuto {Estatuto} '}'.
 	
 	ConG = Con [Con2].
 	
-	Constructor = idC '(' [Param] ')' '{' {Init} '}'.
+	Constructor = idC 	(.	name = conv(t->val);
+						if(dir.find(name) == dir.end()){
+							dir.insert(TABLA::value_type(name, Attribute(PUBLIC, OBJECT, 1, "")));
+							vis = type = -1;
+						} else {
+							cout << "CANNOT DECLARE MORE THAN ONE CONSTRUCTOR." << '\n';
+							err = TRUE;
+						}
+						.)'(' [Param] ')' '{' {Init} '}'.
 	
-	CTE = cteS | cteI | cteD | cteB.
+	CTE = cteS (. ctype = 2; .)| cteI (. ctype = 0; .)| cteD (. ctype = 1; .)| cteB (. ctype = 3; .).
 	
 	CTES = idV | CTE.
 	
 	Decl (. string nameL;.) 
-		= (New | Tipo idV (.nameL = conv(t->val);
+		= (New | Tipo idV (. nameL = conv(t->val); .)
+		  ( '=' CTES | Arr) (.
 							if(( dir.find(nameL) == dir.end()) && 
 								(dir[name].vars.find(nameL) == dir[name].vars.end())){
-								dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+								dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+								dim = 0;
 							} else {
 								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 								err = TRUE;
 							}
-						.)( '=' CTES | Arr) 
-						{',' idV (.	nameL = conv(t->val);
-									if( (dir.find(nameL) == dir.end()) && 
-										(dir[name].vars.find(nameL) == dir[name].vars.end())){
-										dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+							.) 
+		  {',' idV (. nameL = conv(t->val); .) 
+		  ( '=' CTES | Arr )(.
+							if(( dir.find(nameL) == dir.end()) && 
+								(dir[name].vars.find(nameL) == dir[name].vars.end())){
+								dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+								dim = 0;
+							} else {
+								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+								err = TRUE;
+							}
+							.)}) ';'.
+	
+	Esc = tEsc '(' ExpOY {'^' ExpOY} ')' ';'.
+	
+	Estatuto = (idV (.string temp = conv(t->val); 
+					if((dir.find(temp) == dir.end()) && (dir[name].vars.find(temp) == dir[name].vars.end())){
+						cout << "UNDECLARED VARIABLE: " << temp << '\n';
+						err = TRUE;
+					}
+					.) 
+				(Asig | Reg)) | Metodo ';' | Ciclo | Esc | Lec | ConG.
+	
+	Exp = Termino {('+' (. oper.push(SUM); .) | 
+					  '-' (. oper.push(SUB); .)) Termino}.
+	
+	ExpOY = Expresion {('&' (. oper.push(AND); .)| 
+						'|' (. oper.push(OR); .)) Expresion}.
+	
+	Expresion = Exp [(	tMay (. oper.push(GEQ); .)| 
+						tMen (. oper.push(LEQ); .)| 
+						tDif (. oper.push(DIF); .)| 
+						'<' (. oper.push(LT); .)| 
+						'>' (. oper.push(GT); .)| 
+						tEqu (. oper.push(EQ); .)) Exp ].
+	
+	Factor =  ['~'|'-'] ( '(' ExpOY ')' | 
+							idV (.
+									string temp = conv(t->val);
+									if(dir.find(temp) != dir.end()){
+										operandos.push(CVariable(temp, dir.find(temp)->second.att_type, dir.find(temp)->second.att_mtd));
+									} else if(dir[name].vars.find(temp) != dir[name].vars.end()){
+										operandos.push(CVariable(temp, dir[name].vars.find(temp)->second.var_type, dir[name].vars.find(temp)->second.var_dim));
 									} else {
-										cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-										err = TRUE;
+										cout << "UNDECLARED VARIABLE: " << temp << '\n';
+										err = true;
 									}
-								.)( '=' CTES | 
-						Arr (.	nameL = conv(t->val);
-								if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
-									dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 1)));
-								} else {
-									cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-									err = TRUE;
-								}
-							.))}) ';'.
+								.)[Reg|Arr] | 
+								CTE (.
+									string temp = conv(t->val);
+									operandos.push(CVariable(temp, ctype, 0));
+								.)| Metodo | ExpOY).
 	
-	Esc = tEsc '(' Expresion {'^' Expresion} ')' ';'.
-	
-	Estatuto = (idV (Asig | Reg)) | Metodo ';' | Ciclo | Esc | Lec | ConG.
-	
-	Exp = Termino [('+' | '-') Termino].
-	
-	ExpOY = Expresion [('&' | '|') Expresion].
-	
-	Expresion = Exp [(tMay | tMen | tDif | '<' | '>' | tEqu) Exp].
-	
-	Factor =  ['~'|'-'] ('(' ExpOY ')' | idV [Reg|Arr] | CTE | Metodo).
-	
-	Init = idV '=' CTES ';'.
+	Init = idV (.string temp = conv(t->val); 
+				if((dir.find(temp) == dir.end()) && (dir[name].vars.find(temp) == dir[name].vars.end())){
+					cout << "UNDECLARED VARIABLE: " << temp << '\n';
+					err = TRUE;
+				}
+				.)  
+			'=' CTES ';'.
 	
 	Lec = tLec '(' idV ')' ';'.
 	
-	Lista = idV [',' Lista].
+	Lista = CTES [',' Lista].
 	
 	Main = tMai (.	name = conv(t->val);
 					if(dir.find(name) == dir.end()){
-						dir.insert(TABLA::value_type(name, Attribute(vis, MAIN, 0, "")));
+						dir.insert(TABLA::value_type(name, Attribute(3, MAIN, 0, "")));
 						vis = type = -1;
 					} else {
 						cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
@@ -203,9 +251,11 @@ PRODUCTIONS
 					
 	Reg = '.' (Metodo | idV).
 	
-	Return = tRet Expresion ';'.
+	Return = tRet ExpOY ';'.
 	
-	Termino = Factor [('*' | '/' | '%') Factor].
+	Termino = Factor {(	'*' (. oper.push(MUL); .)| 
+						'/' (. oper.push(DIV); .)| 
+						'%' (. oper.push(MOD); .)) Factor}.
 	
 	Tipo = tInt (. type = INT; .)| 
 			tDou (. type = DOUBLE; .)| 

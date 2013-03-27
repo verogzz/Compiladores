@@ -2,7 +2,9 @@
 #define TABLA_H
 #include <stdio.h>
 #include <map>
+#include <stack>
 #include <string>
+#include <vector>
 #include <wchar.h>
 
 using namespace std;
@@ -31,6 +33,25 @@ using namespace std;
 #define TRUE 1
 #define FALSE 0
 
+#define SUM	0
+#define SUB 1
+#define MUL 2
+#define DIV 3
+#define MOD 4
+#define AND 5
+#define OR 6
+#define LT 7
+#define GT 8
+#define EQ 9
+#define DIF 10
+#define GEQ 11
+#define LEQ 12
+#define APP 13
+#define ASI 14
+#define GTT 15
+#define GTF 16
+#define GTO 17
+
 class Variable {
 public: 
 	int var_type;
@@ -56,4 +77,19 @@ public:
 typedef std::map<string, Attribute> TABLA;
 typedef TABLA::iterator SIT;
 
+class Cuadruplo {
+public:
+	int operador;
+	string op1;
+	string op2;
+	string res;
+	Cuadruplo();
+	Cuadruplo(int a, string o1, string o2, string res);
+};
+
+class CVariable : public Variable{
+public:
+	string name;
+	CVariable(string n, int type, int dim);
+};
 #endif

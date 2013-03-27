@@ -22,3 +22,15 @@ Attribute::Attribute(int vis, int type, int a_type, string n_clase){
 	clase = n_clase;
 };
 
+Cuadruplo::Cuadruplo(int a, string o1, string o2, string r){
+	operador = a;
+	op1 = o1;
+	op2 = o2;
+	res = r;
+};
+
+CVariable::CVariable(string n, int type, int dim){
+	name = n;
+	var_type = type;
+	var_dim = dim;
+};

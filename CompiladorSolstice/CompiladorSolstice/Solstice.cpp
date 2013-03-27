@@ -17,35 +17,21 @@ int main (int argc, char *argv[]) {
 		Scanner *scanner = new Scanner(fileName);	
 		Parser *parser = new Parser(scanner);
 		parser->Parse();
-
-		//dir.insert(TABLA::value_type("chingar", Attribute(1, 2, 0)));
-		//dir.insert(TABLA::value_type("chingar", Attribute(1, 2, 1)));
-		//cout << (dir.find("chingar") == dir.end())<< '\n';
-		//cout << (dir.find("chi") == dir.end()) << '\n';
 		
-		for(SIT it = parser->dir.begin(); it != parser->dir.end(); it++){
-			cout<< it->first << '\t' << it->second.att_vis << '\n';
-		//SIT it = parser->dir.begin();
-			for(VMAP::iterator it2 = it->second.vars.begin(); it2 != it->second.vars.end(); it2++)
-				cout<< '\t' <<it2->first << '\t' << it2->second.var_type << '\n';
+		for(int i = 0; i < parser->gen.size(); i++){
+			cout << parser->gen.at(i).operador << '\t' << parser->gen.at(i).op1 << '\t' << parser->gen.at(i).op2 << '\t' << parser->gen.at(i).res << '\n';
 		}
-		Cubo x = Cubo();
-		int i = x.cubo[1][1][1];
-		cout << i;
-		//Metodo metodoP = Metodo(2, 3);
-		//dirC.publico[dirC.conv(L"chingar")] = metodoP;
 		
-		//parser->Parse(); // Compilador se ejecuta y termina
-		//if (parser->errors->count == 0) {
-		//printf("%d\n", dirC.publico[dirC.conv(L"chingar")].m_type );		
-		//}else{
-			//printf("%s", parser->errors);
+		//for(SIT it = parser->dir.begin(); it != parser->dir.end(); it++){
+			//cout<< it->first << '\t' << it->second.att_vis << '\t' << it->second.att_type << '\t' << it->second.att_mtd << '\n';
+			//for(VMAP::iterator it2 = it->second.vars.begin(); it2 != it->second.vars.end(); it2++)
+				//cout<< '\t' <<it2->first << '\t' << it2->second.var_type << '\t' << it2->second.var_dim << '\n';
 		//}
+			
 		delete parser; // Se borra el compilador
 		delete scanner;
 	} else {
 		printf("No se especifico el archivo fuente o ejecuto mas de uno.\n");
 	}	
-	getchar();
 	return 0;
 }
