@@ -64,21 +64,29 @@ bool Parser::WeakSeparator(int n, int syFol, int repFol) {
 }
 
 void Parser::Solstice() {
+		c = Cubo(); availNum = 0;
 		Class();
 		Main();
 }
 
 void Parser::Class() {
+		string ext = "";
 		Expect(_tCla);
 		Expect(_idO);
-		clase = conv(t->val); 
+		className = conv(t->val); 
 		if (la->kind == _tExt) {
 			Get();
 			Expect(_idO);
+			ext = conv(t->val);
 		}
 		Expect(40 /* "{" */);
 		Bloque();
 		Expect(41 /* "}" */);
+		if(dirGral.find(className) == dirGral.end()){
+		dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc)));
+		className = "";
+		dirProc.clear();
+		}
 		if (la->kind == _tCla) {
 			Class();
 		}
@@ -87,8 +95,8 @@ void Parser::Class() {
 void Parser::Main() {
 		Expect(_tMai);
 		name = conv(t->val);
-		if(dir.find(name) == dir.end()){
-		dir.insert(TABLA::value_type(name, Attribute(vis, MAIN, 0, "")));
+		if(dirProc.find(name) == dirProc.end()){
+		dirProc.insert(CTABLE::value_type(name, Attribute(3, MAIN, 0)));
 		vis = type = -1;
 		} else {
 		cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
@@ -105,6 +113,10 @@ void Parser::Main() {
 			Estatuto();
 		}
 		Expect(41 /* "}" */);
+		if(dirGral.find("main") == dirGral.end()){
+		dirGral.insert(TABLE::value_type("main", ClassStruct("", dirProc)));
+		dirProc.clear();
+		}
 }
 
 void Parser::Arr() {
@@ -115,6 +127,7 @@ void Parser::Arr() {
 			Get();
 		} else SynErr(56);
 		Expect(35 /* "]" */);
+		dim = 1; 
 }
 
 void Parser::Asig() {
@@ -135,40 +148,57 @@ void Parser::Asig() {
 
 void Parser::Asig2() {
 		Expect(37 /* "=" */);
-		Expresion();
+		ExpOY();
 }
 
-void Parser::Expresion() {
-		Exp();
-		if (StartOf(3)) {
-			switch (la->kind) {
-			case _tMay: {
+void Parser::ExpOY() {
+		Expresion();
+		while (la->kind == 46 /* "&" */ || la->kind == 47 /* "|" */) {
+			if(!oper.empty() && (oper.top() == AND || 
+			oper.top() == OR)){
+			CVariable o2 = operandos.top();
+			operandos.pop();
+			CVariable o1 = operandos.top();
+			operandos.pop();
+			int op = oper.top();
+			oper.pop();
+			if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+			gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+			operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+			availNum++;
+			} else {
+			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			err = TRUE;
+			}
+			}
+			
+			if (la->kind == 46 /* "&" */) {
 				Get();
-				break;
-			}
-			case _tMen: {
+				oper.push(AND); 
+			} else {
 				Get();
-				break;
+				oper.push(OR); 
 			}
-			case _tDif: {
-				Get();
-				break;
-			}
-			case 48 /* "<" */: {
-				Get();
-				break;
-			}
-			case 49 /* ">" */: {
-				Get();
-				break;
-			}
-			case _tEqu: {
-				Get();
-				break;
-			}
-			}
-			Exp();
+			Expresion();
 		}
+		if(!oper.empty() && (oper.top() == AND || 
+		oper.top() == OR)){
+		CVariable o2 = operandos.top();
+		operandos.pop();
+		CVariable o1 = operandos.top();
+		operandos.pop();
+		int op = oper.top();
+		oper.pop();
+		if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+		gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+		operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+		availNum++;
+		} else {
+		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		err = TRUE;
+		}
+		}
+		
 }
 
 void Parser::Atributo() {
@@ -176,8 +206,8 @@ void Parser::Atributo() {
 		Tipo();
 		Expect(_idV);
 		name = conv(t->val);
-		if(dir.find(name) == dir.end()){
-		dir.insert(TABLA::value_type(name, Attribute(vis, type, 0, clase)));
+		if(dirProc.find(name) == dirProc.end()){
+		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 0)));
 		name = "";
 		vis = type = -1;
 		} else {
@@ -225,7 +255,7 @@ void Parser::Bloque() {
 		Constructor();
 		while (la->kind == _tPub || la->kind == _tPri || la->kind == _tPro) {
 			Vis();
-			if (StartOf(4)) {
+			if (StartOf(3)) {
 				MetodoR();
 			} else if (la->kind == _tVoi) {
 				MetodoV();
@@ -235,8 +265,17 @@ void Parser::Bloque() {
 
 void Parser::Constructor() {
 		Expect(_idC);
+		name = conv(t->val);
+		if(dirProc.find(name) == dirProc.end()){
+		dirProc.insert(CTABLE::value_type(name, Attribute(PUBLIC, OBJECT, 1)));
+		vis = type = -1;
+		} else {
+		cout << "CANNOT DECLARE MORE THAN ONE CONSTRUCTOR." << '\n';
+		err = TRUE;
+		}
+		
 		Expect(38 /* "(" */);
-		if (StartOf(4)) {
+		if (StartOf(3)) {
 			Param();
 		}
 		Expect(39 /* ")" */);
@@ -251,8 +290,8 @@ void Parser::MetodoR() {
 		Tipo();
 		Expect(_idM);
 		name = conv(t->val);
-		if(dir.find(name) == dir.end()){
-		dir.insert(TABLA::value_type(name, Attribute(vis, type, 1, clase)));
+		if(dirProc.find(name) == dirProc.end()){
+		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1)));
 		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
@@ -260,7 +299,7 @@ void Parser::MetodoR() {
 		}
 		
 		Expect(38 /* "(" */);
-		if (StartOf(4)) {
+		if (StartOf(3)) {
 			Param();
 		}
 		Expect(39 /* ")" */);
@@ -280,8 +319,8 @@ void Parser::MetodoV() {
 		Expect(_tVoi);
 		Expect(_idM);
 		name = conv(t->val);
-		if(dir.find(name) == dir.end()){
-		dir.insert(TABLA::value_type(name, Attribute(vis, VOID, 1, clase)));
+		if(dirProc.find(name) == dirProc.end()){
+		dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1)));
 		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
@@ -289,7 +328,7 @@ void Parser::MetodoV() {
 		}
 		
 		Expect(38 /* "(" */);
-		if (StartOf(4)) {
+		if (StartOf(3)) {
 			Param();
 		}
 		Expect(39 /* ")" */);
@@ -307,7 +346,7 @@ void Parser::MetodoV() {
 void Parser::Ciclo() {
 		Expect(_tWhi);
 		Expect(38 /* "(" */);
-		Expresion();
+		ExpOY();
 		Expect(39 /* ")" */);
 		Expect(40 /* "{" */);
 		while (StartOf(2)) {
@@ -320,7 +359,13 @@ void Parser::Estatuto() {
 		switch (la->kind) {
 		case _idV: {
 			Get();
-			if (StartOf(5)) {
+			string temp = conv(t->val); 
+			if((dirProc.find(temp) == dirProc.end()) && (dirProc[name].vars.find(temp) == dirProc[name].vars.end())){
+			cout << "UNDECLARED VARIABLE: " << temp << '\n';
+			err = TRUE;
+			}
+			
+			if (StartOf(4)) {
 				Asig();
 			} else if (la->kind == 51 /* "." */) {
 				Reg();
@@ -355,7 +400,7 @@ void Parser::Estatuto() {
 void Parser::Con() {
 		Expect(_tCon);
 		Expect(38 /* "(" */);
-		Expresion();
+		ExpOY();
 		Expect(39 /* ")" */);
 		Expect(40 /* "{" */);
 		Estatuto();
@@ -366,7 +411,7 @@ void Parser::Con() {
 		while (la->kind == _tEif) {
 			Get();
 			Expect(38 /* "(" */);
-			Expresion();
+			ExpOY();
 			Expect(39 /* ")" */);
 			Expect(40 /* "{" */);
 			Estatuto();
@@ -399,8 +444,8 @@ void Parser::Param() {
 		Tipo();
 		Expect(_idV);
 		nameL = conv(t->val);
-		if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
-		dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+		if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+		dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
 		} else {
 		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 		err = TRUE;
@@ -414,6 +459,12 @@ void Parser::Param() {
 
 void Parser::Init() {
 		Expect(_idV);
+		string temp = conv(t->val); 
+		if((dirProc.find(temp) == dirProc.end()) && (dirProc[name].vars.find(temp) == dirProc[name].vars.end())){
+		cout << "UNDECLARED VARIABLE: " << temp << '\n';
+		err = TRUE;
+		}
+		
 		Expect(37 /* "=" */);
 		CTES();
 		Expect(36 /* ";" */);
@@ -422,19 +473,23 @@ void Parser::Init() {
 void Parser::CTE() {
 		if (la->kind == _cteS) {
 			Get();
+			ctype = 2; 
 		} else if (la->kind == _cteI) {
 			Get();
+			ctype = 0; 
 		} else if (la->kind == _cteD) {
 			Get();
+			ctype = 1; 
 		} else if (la->kind == _cteB) {
 			Get();
+			ctype = 3; 
 		} else SynErr(63);
 }
 
 void Parser::CTES() {
 		if (la->kind == _idV) {
 			Get();
-		} else if (StartOf(6)) {
+		} else if (StartOf(5)) {
 			CTE();
 		} else SynErr(64);
 }
@@ -443,50 +498,44 @@ void Parser::Decl() {
 		string nameL;
 		if (la->kind == _idO) {
 			New();
-		} else if (StartOf(4)) {
+		} else if (StartOf(3)) {
 			Tipo();
 			Expect(_idV);
-			nameL = conv(t->val);
-			if(( dir.find(nameL) == dir.end()) && 
-			(dir[name].vars.find(nameL) == dir[name].vars.end())){
-			dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
-			} else {
-			cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-			err = TRUE;
-			}
-			
+			nameL = conv(t->val); 
 			if (la->kind == 37 /* "=" */) {
 				Get();
 				CTES();
 			} else if (la->kind == 34 /* "[" */) {
 				Arr();
 			} else SynErr(65);
+			if(( dirProc.find(nameL) == dirProc.end()) && 
+			(dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+			dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+			dim = 0;
+			} else {
+			cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+			err = TRUE;
+			}
+			
 			while (la->kind == 42 /* "," */) {
 				Get();
 				Expect(_idV);
-				nameL = conv(t->val);
-				if( (dir.find(nameL) == dir.end()) && 
-				(dir[name].vars.find(nameL) == dir[name].vars.end())){
-				dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
-				} else {
-				cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-				err = TRUE;
-				}
-				
+				nameL = conv(t->val); 
 				if (la->kind == 37 /* "=" */) {
 					Get();
 					CTES();
 				} else if (la->kind == 34 /* "[" */) {
 					Arr();
-					nameL = conv(t->val);
-					if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
-					dir[name].vars.insert(VMAP::value_type(nameL, Variable(type, 1)));
-					} else {
-					cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-					err = TRUE;
-					}
-					
 				} else SynErr(66);
+				if(( dirProc.find(nameL) == dirProc.end()) && 
+				(dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+				dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+				dim = 0;
+				} else {
+				cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+				err = TRUE;
+				}
+				
 			}
 		} else SynErr(67);
 		Expect(36 /* ";" */);
@@ -497,8 +546,8 @@ void Parser::New() {
 		Expect(_idO);
 		Expect(_idV);
 		nameL = conv(t->val);
-		if((dir.find(nameL) == dir.end()) && (dir[name].vars.find(nameL) == dir[name].vars.end())){
-		dir[name].vars.insert(VMAP::value_type(nameL, Variable(4, 0)));
+		if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+		dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(4, 0)));
 		} else {
 		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 		err = TRUE;
@@ -508,7 +557,7 @@ void Parser::New() {
 		Expect(_tNew);
 		Expect(_idC);
 		Expect(38 /* "(" */);
-		if (la->kind == _idV) {
+		if (StartOf(6)) {
 			Lista();
 		}
 		Expect(39 /* ")" */);
@@ -517,10 +566,10 @@ void Parser::New() {
 void Parser::Esc() {
 		Expect(_tEsc);
 		Expect(38 /* "(" */);
-		Expresion();
+		ExpOY();
 		while (la->kind == 43 /* "^" */) {
 			Get();
-			Expresion();
+			ExpOY();
 		}
 		Expect(39 /* ")" */);
 		Expect(36 /* ";" */);
@@ -538,7 +587,7 @@ void Parser::Reg() {
 void Parser::Metodo() {
 		Expect(_idM);
 		Expect(38 /* "(" */);
-		if (la->kind == _idV) {
+		if (StartOf(6)) {
 			Lista();
 		}
 		Expect(39 /* ")" */);
@@ -554,40 +603,186 @@ void Parser::Lec() {
 
 void Parser::Exp() {
 		Termino();
-		if (la->kind == 44 /* "+" */ || la->kind == 45 /* "-" */) {
+		while (la->kind == 44 /* "+" */ || la->kind == 45 /* "-" */) {
+			if(!oper.empty() && (oper.top() == SUM || 
+			oper.top() == SUB)){
+			CVariable o2 = operandos.top();
+			operandos.pop();
+			CVariable o1 = operandos.top();
+			operandos.pop();
+			int op = oper.top();
+			oper.pop();
+			if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+			gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+			operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+			availNum++;
+			} else {
+			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			err = TRUE;
+			}
+			}
+			
 			if (la->kind == 44 /* "+" */) {
 				Get();
+				oper.push(SUM); 
 			} else {
 				Get();
+				oper.push(SUB); 
 			}
 			Termino();
 		}
+		if(!oper.empty() && (oper.top() == SUM || 
+		oper.top() == SUB)){
+		CVariable o2 = operandos.top();
+		operandos.pop();
+		CVariable o1 = operandos.top();
+		operandos.pop();
+		int op = oper.top();
+		oper.pop();
+		if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+		gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+		operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+		availNum++;
+		} else {
+		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		err = TRUE;
+		}
+		}
+		
 }
 
 void Parser::Termino() {
 		Factor();
-		if (la->kind == 52 /* "*" */ || la->kind == 53 /* "/" */ || la->kind == 54 /* "%" */) {
+		while (la->kind == 52 /* "*" */ || la->kind == 53 /* "/" */ || la->kind == 54 /* "%" */) {
+			if(!oper.empty() && (oper.top() == MUL || 
+			oper.top() == DIV || 
+			oper.top() == MOD)){
+			CVariable o2 = operandos.top();
+			operandos.pop();
+			CVariable o1 = operandos.top();
+			operandos.pop();
+			int op = oper.top();
+			oper.pop();
+			if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+			gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+			operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+			availNum++;
+			} else {
+			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			err = TRUE;
+			}
+			}
+			
 			if (la->kind == 52 /* "*" */) {
 				Get();
+				oper.push(MUL); 
 			} else if (la->kind == 53 /* "/" */) {
 				Get();
+				oper.push(DIV); 
 			} else {
 				Get();
+				oper.push(MOD); 
 			}
 			Factor();
 		}
+		if(!oper.empty() && (oper.top() == MUL || 
+		oper.top() == DIV || 
+		oper.top() == MOD)){
+		CVariable o2 = operandos.top();
+		operandos.pop();
+		CVariable o1 = operandos.top();
+		operandos.pop();
+		int op = oper.top();
+		oper.pop();
+		if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+		gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+		operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+		availNum++;
+		} else {
+		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		err = TRUE;
+		}
+		}
+		
 }
 
-void Parser::ExpOY() {
-		Expresion();
-		if (la->kind == 46 /* "&" */ || la->kind == 47 /* "|" */) {
-			if (la->kind == 46 /* "&" */) {
-				Get();
+void Parser::Expresion() {
+		Exp();
+		if (StartOf(7)) {
+			if(!oper.empty() && (oper.top() == GEQ || 
+			oper.top() == LEQ || oper.top() == DIF ||
+			oper.top() == LT || oper.top() == GT ||
+			oper.top() == EQ)){
+			CVariable o2 = operandos.top();
+			operandos.pop();
+			CVariable o1 = operandos.top();
+			operandos.pop();
+			int op = oper.top();
+			oper.pop();
+			if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+			gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+			operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+			availNum++;
 			} else {
-				Get();
+			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			err = TRUE;
 			}
-			Expresion();
+			}
+			
+			switch (la->kind) {
+			case _tMay: {
+				Get();
+				oper.push(GEQ); 
+				break;
+			}
+			case _tMen: {
+				Get();
+				oper.push(LEQ); 
+				break;
+			}
+			case _tDif: {
+				Get();
+				oper.push(DIF); 
+				break;
+			}
+			case 48 /* "<" */: {
+				Get();
+				oper.push(LT); 
+				break;
+			}
+			case 49 /* ">" */: {
+				Get();
+				oper.push(GT); 
+				break;
+			}
+			case _tEqu: {
+				Get();
+				oper.push(EQ); 
+				break;
+			}
+			}
+			Exp();
 		}
+		if(!oper.empty() && (oper.top() == GEQ || 
+		oper.top() == LEQ || oper.top() == DIF ||
+		oper.top() == LT || oper.top() == GT ||
+		oper.top() == EQ)){
+		CVariable o2 = operandos.top();
+		operandos.pop();
+		CVariable o1 = operandos.top();
+		operandos.pop();
+		int op = oper.top();
+		oper.pop();
+		if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+		gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+		operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+		availNum++;
+		} else {
+		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		err = TRUE;
+		}
+		}
+		
 }
 
 void Parser::Factor() {
@@ -600,10 +795,22 @@ void Parser::Factor() {
 		}
 		if (la->kind == 38 /* "(" */) {
 			Get();
+			oper.push(99);
 			ExpOY();
 			Expect(39 /* ")" */);
+			oper.pop();
 		} else if (la->kind == _idV) {
 			Get();
+			string temp = conv(t->val);
+			if(dirProc.find(temp) != dirProc.end()){
+			operandos.push(CVariable(temp, dirProc.find(temp)->second.att_type, dirProc.find(temp)->second.att_mtd));
+			} else if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+			operandos.push(CVariable(temp, dirProc[name].vars.find(temp)->second.var_type, dirProc[name].vars.find(temp)->second.var_dim));
+			} else {
+			cout << "UNDECLARED VARIABLE: " << temp << '\n';
+			err = true;
+			}
+			
 			if (la->kind == 34 /* "[" */ || la->kind == 51 /* "." */) {
 				if (la->kind == 51 /* "." */) {
 					Reg();
@@ -611,15 +818,18 @@ void Parser::Factor() {
 					Arr();
 				}
 			}
-		} else if (StartOf(6)) {
+		} else if (StartOf(5)) {
 			CTE();
+			string temp = conv(t->val);
+			operandos.push(CVariable(temp, ctype, 0));
+			
 		} else if (la->kind == _idM) {
 			Metodo();
 		} else SynErr(69);
 }
 
 void Parser::Lista() {
-		Expect(_idV);
+		CTES();
 		if (la->kind == 42 /* "," */) {
 			Get();
 			Lista();
@@ -628,7 +838,7 @@ void Parser::Lista() {
 
 void Parser::Return() {
 		Expect(_tRet);
-		Expresion();
+		ExpOY();
 		Expect(36 /* ";" */);
 }
 
@@ -748,14 +958,15 @@ bool Parser::StartOf(int s) {
 	const bool T = true;
 	const bool x = false;
 
-	static bool set[7][57] = {
+	static bool set[8][57] = {
 		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,x,x,T, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,T,T,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,x,x,T, x,x,T,T, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
-		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,T,x,x, x,x,x,x, x},
 		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,T,x,x, x,x,T,x, x,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
-		{x,x,x,x, x,T,T,T, T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x}
+		{x,x,x,x, x,T,T,T, T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
+		{x,T,x,x, x,T,T,T, T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
+		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,T,x,x, x,x,x,x, x}
 	};
 
 

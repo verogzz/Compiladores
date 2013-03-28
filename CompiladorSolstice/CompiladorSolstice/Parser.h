@@ -4,7 +4,9 @@
 #define COCO_PARSER_H__
 
 #include "Tabla.h"
+#include "Cubo.h"
 #include <iostream>
+#include <sstream>
 
 
 #include "Scanner.h"
@@ -83,11 +85,21 @@ public:
 	Token *t;			// last recognized token
 	Token *la;			// lookahead token
 
-TABLA dir;
+CTABLE dirProc;
+TABLE dirGral;
+Cubo c;
+stack<int> oper;
+stack<CVariable> operandos;
+stack<int> saltos;
+vector<Cuadruplo> gen;
+
 int type;
+int ctype;
 int vis;
+int dim;
+int availNum;
 string name;
-string clase;
+string className;
 bool err;
 
 string conv(wchar_t* x){
@@ -96,6 +108,12 @@ string conv(wchar_t* x){
 	s.assign(ws.begin(), ws.end());
 	return s;
 };
+
+string avail(){
+    stringstream s;
+    s << "t" << availNum;
+    return s.str();
+}
 
 
 
@@ -109,7 +127,7 @@ string conv(wchar_t* x){
 	void Arr();
 	void Asig();
 	void Asig2();
-	void Expresion();
+	void ExpOY();
 	void Atributo();
 	void Vis();
 	void Tipo();
@@ -134,7 +152,7 @@ string conv(wchar_t* x){
 	void Lec();
 	void Exp();
 	void Termino();
-	void ExpOY();
+	void Expresion();
 	void Factor();
 	void Lista();
 	void Return();

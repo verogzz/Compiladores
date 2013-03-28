@@ -15,11 +15,19 @@ Attribute::Attribute(){
 	att_vis = att_type = att_mtd = 0;
 };
 
-Attribute::Attribute(int vis, int type, int a_type, string n_clase){
+Attribute::Attribute(int vis, int type, int a_type){
 	att_vis = vis;
 	att_type = type;
 	att_mtd = a_type;
-	clase = n_clase;
+};
+
+ClassStruct::ClassStruct(){
+	extended = "";
+};
+
+ClassStruct::ClassStruct(string e, CTABLE proc){
+	extended = e;
+	attributes = proc;
 };
 
 Cuadruplo::Cuadruplo(int a, string o1, string o2, string r){

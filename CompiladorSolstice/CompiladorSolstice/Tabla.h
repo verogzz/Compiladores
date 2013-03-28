@@ -59,7 +59,6 @@ public:
 	Variable();
 	Variable(int t, int d);
 };
-
 typedef std::map<string , Variable> VMAP;
 
 class Attribute {
@@ -67,15 +66,20 @@ public:
 	int att_vis;
 	int att_type;
 	int att_mtd;
-	string clase;
 	VMAP vars;
 	Attribute();
-	Attribute(int vis, int type, int a_type, string clase);
-	string conv(wchar_t* x);
+	Attribute(int vis, int type, int a_type);
 };
+typedef std::map<string, Attribute> CTABLE;
 
-typedef std::map<string, Attribute> TABLA;
-typedef TABLA::iterator SIT;
+class ClassStruct {
+public:
+	string extended;
+	CTABLE attributes;
+	ClassStruct();
+	ClassStruct(string e, CTABLE proc);
+};
+typedef std::map<string, ClassStruct> TABLE;
 
 class Cuadruplo {
 public:
