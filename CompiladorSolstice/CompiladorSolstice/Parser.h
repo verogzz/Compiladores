@@ -88,6 +88,8 @@ public:
 CTABLE dirProc;
 TABLE dirGral;
 Cubo c;
+CVariable o1;
+CVariable o2;
 stack<int> oper;
 stack<CVariable> operandos;
 stack<int> saltos;
@@ -112,6 +114,12 @@ string conv(wchar_t* x){
 string avail(){
     stringstream s;
     s << "t" << availNum;
+    return s.str();
+}
+
+string avail2(int al){
+    stringstream s;
+    s << "" << al;
     return s.str();
 }
 

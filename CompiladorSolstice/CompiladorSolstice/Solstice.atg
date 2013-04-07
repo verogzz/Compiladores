@@ -6,6 +6,8 @@ COMPILER Solstice
 CTABLE dirProc;
 TABLE dirGral;
 Cubo c;
+CVariable o1;
+CVariable o2;
 stack<int> oper;
 stack<CVariable> operandos;
 stack<int> saltos;
@@ -30,6 +32,12 @@ string conv(wchar_t* x){
 string avail(){
     stringstream s;
     s << "t" << availNum;
+    return s.str();
+}
+
+string avail2(int al){
+    stringstream s;
+    s << "" << al;
     return s.str();
 }
 
@@ -88,9 +96,27 @@ PRODUCTIONS
 	
 	Arr = '[' (idV | cteI) ']' (. dim = 1; .).
 	
-	Asig = ((tInc | tDec | Asig2) | Arr Asig2) ';'.
+	Asig = ((tInc (.if(o1.var_type == INT){
+					gen.push_back(Cuadruplo(SUM, o1.name, "1" , o1.name));
+				} else {
+				cout << "TYPE MISMATCH! :" << o1.name << '\n';
+				err = TRUE;
+				}.)| 
+			tDec (.if(o1.var_type == INT){
+					gen.push_back(Cuadruplo(SUB, o1.name, "1" , o1.name));
+				} else {
+				cout << "TYPE MISMATCH! :" << o1.name << '\n';
+				err = TRUE;
+				}.)| 
+			Asig2) | Arr Asig2) ';'.
 	
-	Asig2 = '=' ExpOY.
+	Asig2 = '=' ExpOY (.if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1){
+							gen.push_back(Cuadruplo(ASI, operandos.top().name, "" , o1.name));
+							operandos.pop();
+						} else {
+						cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+						err = TRUE;
+						}.).
 	
 	Atributo = Vis Tipo idV (.	name = conv(t->val);
 								if(dirProc.find(name) == dirProc.end()){
@@ -105,8 +131,22 @@ PRODUCTIONS
 	
 	Bloque = Atributo{Atributo} Constructor {Vis (MetodoR | MetodoV)}.
 	
-	Ciclo = tWhi '(' ExpOY ')' '{' {Estatuto} '}'.
-	
+	Ciclo = tWhi (.saltos.push(gen.size());.) '(' 
+			ExpOY ')' (.CVariable boolRes = operandos.top();
+						operandos.pop();
+						if(boolRes.var_type != BOOLEAN){
+							cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+						}else{
+							gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+							saltos.push(gen.size() - 1);
+						}.)	'{' {Estatuto} 
+			'}' (.int falso = saltos.top();
+				saltos.pop();
+				int ret = saltos.top();
+				saltos.pop();
+				gen.push_back(Cuadruplo(GTO, avail2(ret), "" , ""));
+				gen[falso].res = avail2(gen.size());
+				.).
 	Class = (.string ext = "";.)
 			tCla idO (. className = conv(t->val); .) 
 			[tExt idO (. ext = conv(t->val);.)] 
@@ -117,11 +157,28 @@ PRODUCTIONS
 							}.)
 			[Class].
 	
-	Con = tCon '(' ExpOY ')' '{' Estatuto {Estatuto} '}' {tEif '(' ExpOY ')' '{' Estatuto {Estatuto} '}'}.
+	Con = tCon '(' ExpOY ')'  (.CVariable boolRes = operandos.top();
+								operandos.pop();
+								if(boolRes.var_type != BOOLEAN){
+									cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+								}else{
+									gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+									saltos.push(gen.size() - 1);
+								}.)
+			'{' Estatuto {Estatuto} '}' 
+			{(.gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+				saltos.push(gen.size() - 1);.) tEif '(' ExpOY ')' '{' Estatuto {Estatuto} '}'}.
 	
-	Con2 = tEls '{' Estatuto {Estatuto} '}'.
+	Con2 = (.int ps = saltos.top();
+			saltos.pop();
+			gen.push_back(Cuadruplo(GTO, "", "" , ""));
+			saltos.push(gen.size() - 1);
+			gen[ps].res = avail2(gen.size());.)
+			tEls '{' Estatuto {Estatuto} '}'.
 	
-	ConG = Con [Con2].
+	ConG = Con [Con2](.int ps = saltos.top();
+						saltos.pop();
+						gen[ps].op1 = avail2(gen.size());.).
 	
 	Constructor = idC 	(.	name = conv(t->val);
 						if(dirProc.find(name) == dirProc.end()){
@@ -135,7 +192,18 @@ PRODUCTIONS
 	
 	CTE = cteS (. ctype = 2; .)| cteI (. ctype = 0; .)| cteD (. ctype = 1; .)| cteB (. ctype = 3; .).
 	
-	CTES = idV | CTE.
+	CTES (. string temp; .)
+		= idV (.temp = conv(t->val);
+				if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+					o2.name = temp;
+					o2.var_dim = dirProc[name].vars.find(temp)->second.var_dim;
+					o2.var_type = dirProc[name].vars.find(temp)->second.var_type;
+				}.)| 
+			CTE(.temp = conv(t->val);
+			o2.name = temp;
+			o2.var_dim = 0;
+			o2.var_type = ctype;
+			.).
 	
 	Decl (. string nameL;.) 
 		= (New | Tipo idV (. nameL = conv(t->val); .)
@@ -146,6 +214,12 @@ PRODUCTIONS
 								dim = 0;
 							} else {
 								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+								err = TRUE;
+							}
+							if(c.cubo[o2.var_type][type][ASI] != -1){
+								gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
+							} else {
+								cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 								err = TRUE;
 							}
 							.) 
@@ -159,16 +233,69 @@ PRODUCTIONS
 								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 								err = TRUE;
 							}
+							if(c.cubo[o2.var_type][type][ASI] != -1){
+								gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
+							} else {
+								cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
+								err = TRUE;
+							}
 							.)}) ';'.
 	
-	Esc = tEsc '(' ExpOY {'^' ExpOY} ')' ';'.
+	Esc = tEsc '(' ExpOY {(.if(!oper.empty() && oper.top() == APP){
+								CVariable o2 = operandos.top();
+								operandos.pop();
+								CVariable o1 = operandos.top();
+								operandos.pop();
+								int op = oper.top();
+								oper.pop();
+								if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+									gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+									operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+									availNum++;
+								} else {
+									cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+									err = TRUE;
+								}
+							}
+					.)'^'(.oper.push(APP);.) 
+					ExpOY}(.if(!oper.empty() && oper.top() == APP){
+								CVariable o2 = operandos.top();
+								operandos.pop();
+								CVariable o1 = operandos.top();
+								operandos.pop();
+								int op = oper.top();
+								oper.pop();
+								if(c.cubo[o1.var_type][o2.var_type][op] != -1){
+									gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
+									operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+									availNum++;
+								} else {
+									cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+									err = TRUE;
+								}
+							}
+							.) ')' 
+				(.CVariable strRes = operandos.top();
+				operandos.pop();
+				if(strRes.var_type != STRING){
+					cout << "EXPRESSION MUST BE STRING TYPE!\n";
+				}else{
+					gen.push_back(Cuadruplo(WRI, strRes.name, "" , ""));
+				}.)';'.
 	
 	Estatuto = (idV (.string temp = conv(t->val); 
-					if((dirProc.find(temp) == dirProc.end()) && (dirProc[name].vars.find(temp) == dirProc[name].vars.end())){
-						cout << "UNDECLARED VARIABLE: " << temp << '\n';
-						err = TRUE;
-					}
-					.) 
+					if(dirProc.find(temp) != dirProc.end()){
+						o1.name = temp;
+						o1.var_dim = 0;
+						o1.var_type = dirProc.find(temp)->second.att_type;
+					}else if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+						o1.name = temp;
+						o1.var_dim = 0;
+						o1.var_type = dirProc[name].vars.find(temp)->second.var_type;
+					}else {
+					cout << "UNDECLARED VARIABLE: " << temp << '\n';
+					err = TRUE;
+					}.) 
 				(Asig | Reg)) | Metodo ';' | Ciclo | Esc | Lec | ConG.
 	
 	Exp = Termino {(.if(!oper.empty() && (oper.top() == SUM || 
@@ -313,14 +440,42 @@ PRODUCTIONS
 					.) | Metodo).
 	
 	Init = idV (.string temp = conv(t->val); 
-				if((dirProc.find(temp) == dirProc.end()) && (dirProc[name].vars.find(temp) == dirProc[name].vars.end())){
-					cout << "UNDECLARED VARIABLE: " << temp << '\n';
-					err = TRUE;
-				}
-				.)  
-			'=' CTES ';'.
+				if(dirProc.find(temp) != dirProc.end()){
+					o1.name = temp;
+					o1.var_dim = 0;
+					o1.var_type = dirProc.find(temp)->second.att_type;
+				}else{
+				cout << "UNDECLARED VARIABLE: " << temp << '\n';
+				err = TRUE;
+				}.)  
+			'=' CTES (.if(c.cubo[o2.var_type][o1.var_type][ASI] != -1){
+						gen.push_back(Cuadruplo(ASI,o2.name, "" , o1.name));
+					} else {
+						cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+						err = TRUE;
+					}
+					.)';'.
 	
-	Lec = tLec '(' idV ')' ';'.
+	Lec = tLec '(' idV (.string temp = conv(t->val); 
+						if(dirProc.find(temp) != dirProc.end()){
+							o1.name = temp;
+							o1.var_dim = 0;
+							o1.var_type = dirProc.find(temp)->second.att_type;
+						}else if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+							o1.name = temp;
+							o1.var_dim = 0;
+							o1.var_type = dirProc[name].vars.find(temp)->second.var_type;
+						}else {
+						cout << "UNDECLARED VARIABLE: " << temp << '\n';
+						err = TRUE;
+						}
+						if(o1.var_type == STRING){
+						gen.push_back(Cuadruplo(REA,o1.name, "" , ""));
+						} else {
+						cout << "TYPE MISMATCH! :" << o1.name << '\n';
+						err = TRUE;
+						}.)
+			')' ';'.
 	
 	Lista = CTES [',' Lista].
 	

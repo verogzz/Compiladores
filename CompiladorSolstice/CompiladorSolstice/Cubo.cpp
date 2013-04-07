@@ -25,7 +25,8 @@ Cubo::Cubo(void) {
 	<>		10
 	>=		11
 	<=		12 
-	^		13*/
+	^		13
+	=		14*/
 
 	// INT
 	cubo[0][0][0] = 0; // int + int = int
@@ -97,6 +98,11 @@ Cubo::Cubo(void) {
 	cubo[0][1][13] = 2; // int ^ double = string
 	cubo[0][2][13] = 2; // int ^ string = string
 	cubo[0][3][13] = 2; // int ^ bool = string
+
+	cubo[0][0][14] = 1; // int = int
+	cubo[0][1][14] = -1; // int = double
+	cubo[0][2][14] = -1; // int = string
+	cubo[0][3][14] = -1; // int = bool
 	
 	// DOUBLE
 	cubo[1][0][0] = -1; // double + int = error
@@ -168,6 +174,11 @@ Cubo::Cubo(void) {
 	cubo[1][1][13] = 2; // double ^ double = string
 	cubo[1][2][13] = 2; // double ^ string = string
 	cubo[1][3][13] = 2; // double ^ bool = string
+
+	cubo[1][0][14] = -1; // double = int
+	cubo[1][1][14] = 1; // double = double
+	cubo[1][2][14] = -1; // double = string
+	cubo[1][3][14] = -1; // double = bool
 	
 	// STRING
 	cubo[2][0][0] = -1; // string + int = error
@@ -240,6 +251,11 @@ Cubo::Cubo(void) {
 	cubo[2][2][13] = 2; // string ^ string = string
 	cubo[2][3][13] = 2; // string ^ bool = string
 
+	cubo[2][0][14] = -1; // string = int
+	cubo[2][1][14] = -1; // string = double
+	cubo[2][2][14] = 2; // string = string
+	cubo[2][3][14] = -1; // string = bool
+
 	// BOOL
 	cubo[3][0][0] = -1; // bool + int = error
 	cubo[3][1][0] = -1; // bool + double = error
@@ -310,6 +326,11 @@ Cubo::Cubo(void) {
 	cubo[3][1][13] = 2; // bool ^ double = string
 	cubo[3][2][13] = 2; // bool ^ string = string
 	cubo[3][3][13] = 2; // bool ^ bool = string
+
+	cubo[3][0][14] = -1; // bool = int
+	cubo[3][1][14] = -1; // bool = double
+	cubo[3][2][14] = -1; // bool = string
+	cubo[3][3][14] = 3; // bool = bool
 
 	Cubo::cubo[1][1][1];
 }

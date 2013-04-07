@@ -37,6 +37,12 @@ Cuadruplo::Cuadruplo(int a, string o1, string o2, string r){
 	res = r;
 };
 
+CVariable::CVariable(){
+	name = "";
+	var_type = -1;
+	var_dim = -1;
+};
+
 CVariable::CVariable(string n, int type, int dim){
 	name = n;
 	var_type = type;

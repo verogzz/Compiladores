@@ -51,6 +51,8 @@ using namespace std;
 #define GTT 15
 #define GTF 16
 #define GTO 17
+#define REA 18
+#define WRI 19
 
 class Variable {
 public: 
@@ -94,6 +96,7 @@ public:
 class CVariable : public Variable{
 public:
 	string name;
+	CVariable();
 	CVariable(string n, int type, int dim);
 };
 #endif

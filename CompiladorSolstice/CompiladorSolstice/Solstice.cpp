@@ -19,7 +19,7 @@ int main (int argc, char *argv[]) {
 		parser->Parse();
 		
 		for(int i = 0; i < parser->gen.size(); i++){
-			cout << parser->gen.at(i).operador << '\t' << parser->gen.at(i).op1 << '\t' << parser->gen.at(i).op2 << '\t' << parser->gen.at(i).res << '\n';
+			cout << i << '\t' << parser->gen.at(i).operador << '\t' << parser->gen.at(i).op1 << '\t' << parser->gen.at(i).op2 << '\t' << parser->gen.at(i).res << '\n';
 		}
 		cout << "operadores" << '\n';
 		for(int i = 0; i < parser->gen.size() && !parser->oper.empty(); i++){
