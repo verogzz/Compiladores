@@ -53,6 +53,11 @@ using namespace std;
 #define GTO 17
 #define REA 18
 #define WRI 19
+#define ERA 20
+#define GSU 21
+#define RET 22
+#define MR 23
+#define PAR 24
 
 class Variable {
 public: 
@@ -68,8 +73,11 @@ public:
 	int att_vis;
 	int att_type;
 	int att_mtd;
+	int mtd_q;
+	vector<int> params;
 	VMAP vars;
 	Attribute();
+	Attribute(int vis, int type, int a_type, int dir);
 	Attribute(int vis, int type, int a_type);
 };
 typedef std::map<string, Attribute> CTABLE;

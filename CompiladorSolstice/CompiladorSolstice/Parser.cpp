@@ -310,7 +310,7 @@ void Parser::MetodoR() {
 		Expect(_idM);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
-		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1)));
+		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size())));
 		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
@@ -330,8 +330,11 @@ void Parser::MetodoR() {
 			Estatuto();
 		}
 		Return();
+		gen.push_back(Cuadruplo(MR, operandos.top().name, "", ""));
+		operandos.pop();
 		Expect(41 /* "}" */);
 		name = "";
+		gen.push_back(Cuadruplo(RET, "", "", ""));
 }
 
 void Parser::MetodoV() {
@@ -339,7 +342,7 @@ void Parser::MetodoV() {
 		Expect(_idM);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
-		dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1)));
+		dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));
 		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
@@ -360,6 +363,7 @@ void Parser::MetodoV() {
 		}
 		Expect(41 /* "}" */);
 		name = "";
+		gen.push_back(Cuadruplo(RET, "", "", ""));
 }
 
 void Parser::Ciclo() {
@@ -441,6 +445,7 @@ void Parser::Estatuto() {
 
 void Parser::Con() {
 		Expect(_tCon);
+		ifs.push(1);
 		Expect(38 /* "(" */);
 		ExpOY();
 		Expect(39 /* ")" */);
@@ -459,12 +464,24 @@ void Parser::Con() {
 		}
 		Expect(41 /* "}" */);
 		while (la->kind == _tEif) {
-			gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
-			saltos.push(gen.size() - 1);
 			Get();
+			int ps = saltos.top();
+			saltos.pop();
+			gen.push_back(Cuadruplo(GTO, "", "" , ""));
+			saltos.push(gen.size() - 1);
+			gen[ps].res = avail2(gen.size());
 			Expect(38 /* "(" */);
 			ExpOY();
 			Expect(39 /* ")" */);
+			ifs.top()++;
+			CVariable boolRes = operandos.top();
+			operandos.pop();
+			if(boolRes.var_type != BOOLEAN){
+			cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+			}else{
+			gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+			saltos.push(gen.size() - 1);
+			}
 			Expect(40 /* "{" */);
 			Estatuto();
 			while (StartOf(2)) {
@@ -475,12 +492,14 @@ void Parser::Con() {
 }
 
 void Parser::Con2() {
+		Expect(_tEls);
+		if(gen[saltos.top()].operador != GTO){
 		int ps = saltos.top();
 		saltos.pop();
 		gen.push_back(Cuadruplo(GTO, "", "" , ""));
-		saltos.push(gen.size() - 1);
 		gen[ps].res = avail2(gen.size());
-		Expect(_tEls);
+		saltos.push(gen.size() - 1);
+		}
 		Expect(40 /* "{" */);
 		Estatuto();
 		while (StartOf(2)) {
@@ -494,9 +513,17 @@ void Parser::ConG() {
 		if (la->kind == _tEls) {
 			Con2();
 		}
+		int gts = ifs.top();
+		ifs.pop();
+		while(gts > 0){
 		int ps = saltos.top();
 		saltos.pop();
+		if(gen[ps].operador == GTO)
 		gen[ps].op1 = avail2(gen.size());
+		else if (gen[ps].operador == GTF)
+		gen[ps].res = avail2(gen.size());
+		gts--;
+		}
 }
 
 void Parser::Param() {
@@ -506,6 +533,7 @@ void Parser::Param() {
 		nameL = conv(t->val);
 		if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
 		dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+		dirProc[name].params.push_back(type);
 		} else {
 		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 		err = TRUE;
@@ -722,11 +750,19 @@ void Parser::Reg() {
 
 void Parser::Metodo() {
 		Expect(_idM);
+		string name = conv(t->val);
+		if(dirProc.find(name) != dirProc.end()){
+		cout << "UNDECLARED METHOD: " << name << '\n';
+		err = TRUE;
+		}
+		gen.push_back(Cuadruplo(ERA,name, "" , ""));
 		Expect(38 /* "(" */);
+		t_params = dirProc[name].params; 
 		if (StartOf(6)) {
 			Lista();
 		}
 		Expect(39 /* ")" */);
+		gen.push_back(Cuadruplo(GSU, avail2(dirProc[name].mtd_q), "" , ""));
 }
 
 void Parser::Lec() {
@@ -985,6 +1021,12 @@ void Parser::Factor() {
 
 void Parser::Lista() {
 		CTES();
+		if(o2.var_type == t_params.begin){
+
+		}else{
+			cout << "INCOMPATIBLE TYPE OF PARAMETER\n";
+		}
+
 		if (la->kind == 42 /* "," */) {
 			Get();
 			Lista();

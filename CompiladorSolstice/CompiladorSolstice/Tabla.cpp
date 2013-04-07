@@ -15,10 +15,18 @@ Attribute::Attribute(){
 	att_vis = att_type = att_mtd = 0;
 };
 
+Attribute::Attribute(int vis, int type, int a_type, int dir){
+	att_vis = vis;
+	att_type = type;
+	att_mtd = a_type;
+	mtd_q = dir;
+};
+
 Attribute::Attribute(int vis, int type, int a_type){
 	att_vis = vis;
 	att_type = type;
 	att_mtd = a_type;
+	mtd_q = -1;
 };
 
 ClassStruct::ClassStruct(){

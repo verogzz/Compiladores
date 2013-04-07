@@ -11,6 +11,8 @@ CVariable o2;
 stack<int> oper;
 stack<CVariable> operandos;
 stack<int> saltos;
+stack<int> ifs;
+vector<int> t_params;
 vector<Cuadruplo> gen;
 
 int type;
@@ -157,28 +159,52 @@ PRODUCTIONS
 							}.)
 			[Class].
 	
-	Con = tCon '(' ExpOY ')'  (.CVariable boolRes = operandos.top();
-								operandos.pop();
-								if(boolRes.var_type != BOOLEAN){
-									cout << "EXPRESSION MUST BE BOOL TYPE!\n";
-								}else{
-									gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
-									saltos.push(gen.size() - 1);
-								}.)
+	Con = 	tCon (.ifs.push(1);.)
+			'(' ExpOY ')'  (.CVariable boolRes = operandos.top();
+							operandos.pop();
+							if(boolRes.var_type != BOOLEAN){
+							cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+							}else{
+							gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+							saltos.push(gen.size() - 1);
+							}.)
 			'{' Estatuto {Estatuto} '}' 
-			{(.gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
-				saltos.push(gen.size() - 1);.) tEif '(' ExpOY ')' '{' Estatuto {Estatuto} '}'}.
+			{ tEif (.int ps = saltos.top();
+					saltos.pop();
+					gen.push_back(Cuadruplo(GTO, "", "" , ""));
+					saltos.push(gen.size() - 1);
+					gen[ps].res = avail2(gen.size());.)
+			'(' ExpOY ')' (.ifs.top()++;
+							CVariable boolRes = operandos.top();
+							operandos.pop();
+							if(boolRes.var_type != BOOLEAN){
+							cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+							}else{
+							gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+							saltos.push(gen.size() - 1);
+							}.)
+			'{' Estatuto {Estatuto} '}'}.
 	
-	Con2 = (.int ps = saltos.top();
-			saltos.pop();
-			gen.push_back(Cuadruplo(GTO, "", "" , ""));
-			saltos.push(gen.size() - 1);
-			gen[ps].res = avail2(gen.size());.)
-			tEls '{' Estatuto {Estatuto} '}'.
+	Con2 = 	tEls (.if(gen[saltos.top()].operador != GTO){
+				int ps = saltos.top();
+				saltos.pop();
+				gen.push_back(Cuadruplo(GTO, "", "" , ""));
+				gen[ps].res = avail2(gen.size());
+				saltos.push(gen.size() - 1);
+				}.)
+			'{' Estatuto {Estatuto} '}'.
 	
-	ConG = Con [Con2](.int ps = saltos.top();
+	ConG = 	Con [Con2](.int gts = ifs.top();
+						ifs.pop();
+						while(gts > 0){
+						int ps = saltos.top();
 						saltos.pop();
-						gen[ps].op1 = avail2(gen.size());.).
+						if(gen[ps].operador == GTO)
+							gen[ps].op1 = avail2(gen.size());
+						else if (gen[ps].operador == GTF)
+							gen[ps].res = avail2(gen.size());
+						gts--;
+						}.).
 	
 	Constructor = idC 	(.	name = conv(t->val);
 						if(dirProc.find(name) == dirProc.end()){
@@ -493,27 +519,43 @@ PRODUCTIONS
 					dirProc.clear();
 				}.).
 	
-	Metodo = idM '(' [Lista] ')'.
+	Metodo = 	idM (.string name = conv(t->val);
+					if(dirProc.find(name) != dirProc.end()){
+					cout << "UNDECLARED METHOD: " << name << '\n';
+					err = TRUE;
+					}
+					gen.push_back(Cuadruplo(ERA,name, "" , ""));.)
+				'(' (. t_params = dirProc[name].params; .)
+				[Lista] ')'
+				(.gen.push_back(Cuadruplo(GSU, avail2(dirProc[name].mtd_q), "" , ""));.).
 	
-	MetodoR = Tipo idM (.	name = conv(t->val);
+	MetodoR = 	Tipo idM (.	name = conv(t->val);
 							if(dirProc.find(name) == dirProc.end()){
-								dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1)));
+								dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size())));
 								vis = type = -1;
 							} else {
 								cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
 								err = TRUE;
 							}
-						.) '(' [Param] ')' '{' {Decl} {Estatuto} Return '}' (. name = "";.).
+						.) 
+				'(' [Param] ')' '{' {Decl} 
+				{Estatuto} Return  (.gen.push_back(Cuadruplo(MR, operandos.top().name, "", ""));
+									operandos.pop();.)
+				'}' (. 	name = "";
+						gen.push_back(Cuadruplo(RET, "", "", ""));.).
 						
-	MetodoV = tVoi idM (.	name = conv(t->val);
+	MetodoV = 	tVoi idM (.	name = conv(t->val);
 							if(dirProc.find(name) == dirProc.end()){
-								dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1)));
+								dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));
 								vis = type = -1;
 							} else {
 								cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
 								err = TRUE;
 							}
-						.) '(' [Param] ')' '{' {Decl} {Estatuto} '}' (. name = "";.).
+						.) 
+				'(' [Param] ')' '{' {Decl} 
+				{Estatuto} '}' (. name = "";
+								gen.push_back(Cuadruplo(RET, "", "", ""));.).
 						
 	New (. string nameL; .)  
 		= idO idV (.	nameL = conv(t->val);
@@ -529,6 +571,7 @@ PRODUCTIONS
 		= Tipo idV (.	nameL = conv(t->val);
 						if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
 							dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+							dirProc[name].params.push_back(type);
 						} else {
 							cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 							err = TRUE;

@@ -93,6 +93,8 @@ CVariable o2;
 stack<int> oper;
 stack<CVariable> operandos;
 stack<int> saltos;
+stack<int> ifs;
+vector<int> t_params;
 vector<Cuadruplo> gen;
 
 int type;
