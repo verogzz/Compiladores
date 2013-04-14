@@ -107,4 +107,13 @@ public:
 	CVariable();
 	CVariable(string n, int type, int dim);
 };
+
+class Constantes {
+public:
+	int type;
+	int memoria;
+	Constantes();
+	Constantes(int t, int m);
+};
+typedef std::map<string, Constantes> CTS;
 #endif

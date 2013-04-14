@@ -3,8 +3,6 @@
 #include <map>
 #include "Parser.h"
 #include "Scanner.h"
-#include "Tabla.h"
-#include "Cubo.h"
 #include <sys/timeb.h>
 #include <wchar.h>
 #include <utility>

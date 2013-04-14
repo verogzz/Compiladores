@@ -53,6 +53,9 @@
     <ClInclude Include="Tabla.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Memoria.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Parser.cpp">
@@ -68,6 +71,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tabla.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memoria.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

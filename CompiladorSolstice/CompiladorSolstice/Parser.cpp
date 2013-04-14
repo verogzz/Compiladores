@@ -64,13 +64,21 @@ bool Parser::WeakSeparator(int n, int syFol, int repFol) {
 }
 
 void Parser::Solstice() {
-		c = Cubo(); availNum = 0;
+		c = Cubo(); 
+		availNum = 0;
+		type = ctype = vis = dim = -1;
+		name = "";
+		gi = gd = gb = gs = li = ld = lb = ls = ti = td = tb = ts = ci = cd = cb = cs = 0;
+		className = "";
+		err = false;	
 		Class();
 		Main();
 }
 
 void Parser::Class() {
 		string ext = "";
+		className = "";
+		dirProc.clear();
 		Expect(_tCla);
 		Expect(_idO);
 		className = conv(t->val); 
@@ -84,8 +92,8 @@ void Parser::Class() {
 		Expect(41 /* "}" */);
 		if(dirGral.find(className) == dirGral.end()){
 		dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc)));
-		className = "";
-		dirProc.clear();
+		}else{
+		cout << "CLASS PREVIOUSLY DECLARED!\n";
 		}
 		if (la->kind == _tCla) {
 			Class();
@@ -102,7 +110,6 @@ void Parser::Main() {
 		cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
 		err = TRUE;
 		}
-		
 		Expect(38 /* "(" */);
 		Expect(39 /* ")" */);
 		Expect(40 /* "{" */);
@@ -115,7 +122,6 @@ void Parser::Main() {
 		Expect(41 /* "}" */);
 		if(dirGral.find("main") == dirGral.end()){
 		dirGral.insert(TABLE::value_type("main", ClassStruct("", dirProc)));
-		dirProc.clear();
 		}
 }
 
@@ -190,7 +196,6 @@ void Parser::ExpOY() {
 			err = TRUE;
 			}
 			}
-			
 			if (la->kind == 46 /* "&" */) {
 				Get();
 				oper.push(AND); 
@@ -217,18 +222,17 @@ void Parser::ExpOY() {
 		err = TRUE;
 		}
 		}
-		
 }
 
 void Parser::Atributo() {
+		name = "";
+		vis = type = -1;
 		Vis();
 		Tipo();
 		Expect(_idV);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 0)));
-		name = "";
-		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED ATTRIBUTE: " << name << '\n';
 		err = TRUE;
@@ -283,16 +287,16 @@ void Parser::Bloque() {
 }
 
 void Parser::Constructor() {
+		name = "";
+		vis = type = -1;
 		Expect(_idC);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(PUBLIC, OBJECT, 1)));
-		vis = type = -1;
 		} else {
 		cout << "CANNOT DECLARE MORE THAN ONE CONSTRUCTOR." << '\n';
 		err = TRUE;
 		}
-		
 		Expect(38 /* "(" */);
 		if (StartOf(3)) {
 			Param();
@@ -306,12 +310,12 @@ void Parser::Constructor() {
 }
 
 void Parser::MetodoR() {
+		vis = type = -1;
 		Tipo();
 		Expect(_idM);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size())));
-		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
 		err = TRUE;
@@ -338,12 +342,12 @@ void Parser::MetodoR() {
 }
 
 void Parser::MetodoV() {
+		vis = type = -1;
 		Expect(_tVoi);
 		Expect(_idM);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));
-		vis = type = -1;
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
 		err = TRUE;
@@ -395,18 +399,21 @@ void Parser::Ciclo() {
 }
 
 void Parser::Estatuto() {
+		string temp = "";
+		o1.~CVariable();
+		o2.~CVariable();
 		switch (la->kind) {
 		case _idV: {
 			Get();
-			string temp = conv(t->val); 
-			if(dirProc.find(temp) != dirProc.end()){
+			temp = conv(t->val); 
+			if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 			o1.name = temp;
 			o1.var_dim = 0;
-			o1.var_type = dirProc.find(temp)->second.att_type;
-			}else if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+			o1.var_type = dirProc[name].vars[temp].var_type;
+			}else if(dirProc.find(temp) != dirProc.end()){
 			o1.name = temp;
 			o1.var_dim = 0;
-			o1.var_type = dirProc[name].vars.find(temp)->second.var_type;
+			o1.var_type = dirProc[temp].att_type;
 			}else {
 			cout << "UNDECLARED VARIABLE: " << temp << '\n';
 			err = TRUE;
@@ -551,7 +558,7 @@ void Parser::Init() {
 		if(dirProc.find(temp) != dirProc.end()){
 		o1.name = temp;
 		o1.var_dim = 0;
-		o1.var_type = dirProc.find(temp)->second.att_type;
+		o1.var_type = dirProc[temp].att_type;
 		}else{
 		cout << "UNDECLARED VARIABLE: " << temp << '\n';
 		err = TRUE;
@@ -564,11 +571,11 @@ void Parser::Init() {
 		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 		err = TRUE;
 		}
-		
 		Expect(36 /* ";" */);
 }
 
 void Parser::CTE() {
+		ctype = -1;
 		if (la->kind == _cteS) {
 			Get();
 			ctype = 2; 
@@ -581,18 +588,30 @@ void Parser::CTE() {
 		} else if (la->kind == _cteB) {
 			Get();
 			ctype = 3; 
+			string c = conv(t->val);
+			if(cts.find(c) == cts.end()){
+			cts.insert(CTS::value_type(c, Constantes(ctype, 0)));
+			}
+			
 		} else SynErr(63);
 }
 
 void Parser::CTES() {
-		string temp; 
+		string temp = ""; 
 		if (la->kind == _idV) {
 			Get();
 			temp = conv(t->val);
 			if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 			o2.name = temp;
-			o2.var_dim = dirProc[name].vars.find(temp)->second.var_dim;
-			o2.var_type = dirProc[name].vars.find(temp)->second.var_type;
+			o2.var_dim = dirProc[name].vars[temp].var_dim;
+			o2.var_type = dirProc[name].vars[temp].var_type;
+			} else if(dirProc.find(temp) != dirProc.end()){
+			o2.name = temp;
+			o2.var_dim = 0;
+			o2.var_type = dirProc[name].att_type;
+			} else {
+			cout << "UNDECLARED VARIABLE." << '\n';
+			err = TRUE;
 			}
 		} else if (StartOf(5)) {
 			CTE();
@@ -618,8 +637,7 @@ void Parser::Decl() {
 			} else if (la->kind == 34 /* "[" */) {
 				Arr();
 			} else SynErr(65);
-			if(( dirProc.find(nameL) == dirProc.end()) && 
-			(dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+			if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
 			dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
 			dim = 0;
 			} else {
@@ -632,7 +650,6 @@ void Parser::Decl() {
 			cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
-			
 			while (la->kind == 42 /* "," */) {
 				Get();
 				Expect(_idV);
@@ -643,8 +660,7 @@ void Parser::Decl() {
 				} else if (la->kind == 34 /* "[" */) {
 					Arr();
 				} else SynErr(66);
-				if(( dirProc.find(nameL) == dirProc.end()) && 
-				(dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+				if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
 				dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
 				dim = 0;
 				} else {
@@ -657,7 +673,6 @@ void Parser::Decl() {
 				cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 				err = TRUE;
 				}
-				
 			}
 		} else SynErr(67);
 		Expect(36 /* ";" */);
@@ -706,7 +721,6 @@ void Parser::Esc() {
 			err = TRUE;
 			}
 			}
-			
 			Get();
 			oper.push(APP);
 			ExpOY();
@@ -727,7 +741,6 @@ void Parser::Esc() {
 		err = TRUE;
 		}
 		}
-		
 		Expect(39 /* ")" */);
 		CVariable strRes = operandos.top();
 		operandos.pop();
@@ -751,16 +764,27 @@ void Parser::Reg() {
 void Parser::Metodo() {
 		Expect(_idM);
 		string name = conv(t->val);
-		if(dirProc.find(name) != dirProc.end()){
+		if(dirProc.find(name) == dirProc.end()){
 		cout << "UNDECLARED METHOD: " << name << '\n';
 		err = TRUE;
 		}
 		gen.push_back(Cuadruplo(ERA,name, "" , ""));
 		Expect(38 /* "(" */);
-		t_params = dirProc[name].params; 
 		if (StartOf(6)) {
 			Lista();
 		}
+		if(t_params.size() == dirProc[name].params.size()){
+		for(int i = 0; i < dirProc[name].params.size(); i++){
+		if (t_params.at(i).var_type != dirProc[name].params.at(i)){
+		cout << "PARAMETER TYPES MISMATCH.\n";
+		i = dirProc[name].params.size();
+		}
+		gen.push_back(Cuadruplo(PAR, t_params.at(i).name, "" , avail2(i+1)));
+		}
+		}else{
+		cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
+		}
+		t_params.clear();
 		Expect(39 /* ")" */);
 		gen.push_back(Cuadruplo(GSU, avail2(dirProc[name].mtd_q), "" , ""));
 }
@@ -770,19 +794,21 @@ void Parser::Lec() {
 		Expect(38 /* "(" */);
 		Expect(_idV);
 		string temp = conv(t->val); 
-		if(dirProc.find(temp) != dirProc.end()){
-		o1.name = temp;
-		o1.var_dim = 0;
-		o1.var_type = dirProc.find(temp)->second.att_type;
-		}else if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+		if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 		o1.name = temp;
 		o1.var_dim = 0;
 		o1.var_type = dirProc[name].vars.find(temp)->second.var_type;
+		}else if(dirProc.find(temp) != dirProc.end()){
+		o1.name = temp;
+		o1.var_dim = 0;
+		o1.var_type = dirProc.find(temp)->second.att_type;
 		}else {
 		cout << "UNDECLARED VARIABLE: " << temp << '\n';
 		err = TRUE;
 		}
-		if(o1.var_type == STRING){
+		Expect(42 /* "," */);
+		Tipo();
+		if(o1.var_type == type){
 		gen.push_back(Cuadruplo(REA,o1.name, "" , ""));
 		} else {
 		cout << "TYPE MISMATCH! :" << o1.name << '\n';
@@ -812,7 +838,6 @@ void Parser::Exp() {
 			err = TRUE;
 			}
 			}
-			
 			if (la->kind == 44 /* "+" */) {
 				Get();
 				oper.push(SUM); 
@@ -839,7 +864,6 @@ void Parser::Exp() {
 		err = TRUE;
 		}
 		}
-		
 }
 
 void Parser::Termino() {
@@ -894,7 +918,6 @@ void Parser::Termino() {
 		err = TRUE;
 		}
 		}
-		
 }
 
 void Parser::Expresion() {
@@ -919,7 +942,6 @@ void Parser::Expresion() {
 			err = TRUE;
 			}
 			}
-			
 			switch (la->kind) {
 			case _tMay: {
 				Get();
@@ -973,7 +995,6 @@ void Parser::Expresion() {
 		err = TRUE;
 		}
 		}
-		
 }
 
 void Parser::Factor() {
@@ -1001,7 +1022,6 @@ void Parser::Factor() {
 			cout << "UNDECLARED VARIABLE: " << temp << '\n';
 			err = true;
 			}
-			
 			if (la->kind == 34 /* "[" */ || la->kind == 51 /* "." */) {
 				if (la->kind == 51 /* "." */) {
 					Reg();
@@ -1021,12 +1041,7 @@ void Parser::Factor() {
 
 void Parser::Lista() {
 		CTES();
-		if(o2.var_type == t_params.begin){
-
-		}else{
-			cout << "INCOMPATIBLE TYPE OF PARAMETER\n";
-		}
-
+		t_params.push_back(o2);
 		if (la->kind == 42 /* "," */) {
 			Get();
 			Lista();

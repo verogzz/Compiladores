@@ -85,12 +85,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cubo.h" />
+    <ClInclude Include="Memoria.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="Tabla.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cubo.cpp" />
+    <ClCompile Include="Memoria.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Solstice.cpp" />
