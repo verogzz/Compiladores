@@ -120,7 +120,34 @@ PRODUCTIONS
 					err = false;	.)
 					Class Main.
 	
-	Arr = '[' (idV | cteI) ']' (. dim = 1; .).
+	Arr = 	'[' 
+			cteI 	(.dim = atoi(&conv(t->val)[0]);
+					if(dim < 2){
+						cout << "ARRAY SIZE MUST BE GREATER THAN ONE!\n";
+					}.)
+			']' .
+	
+	Arr2 = 	'['	(.if(o1.var_dim < 1){
+				cout << "VARIABLE IS NOT AN ARRAY!\n";	
+				err = true;
+				}.)
+			ExpOY 	(.if(!operandos.empty()){
+						o2 = operandos.top();
+						operandos.pop();
+						if(o2.var_type == INT){
+							gen.push_back(Cuadruplo(VER, o2.name, "0", avail2(o1.var_dim)));
+							gen.push_back(Cuadruplo(SUM, o2.name, "dirBase", avail()));
+							operandos.pus
+							availNum++;
+						}else{
+							cout << "EXPRESSION MUST BE INT TYPE!\n";	
+							err = true;
+						}
+					}else{
+						cout << "ERROR!\n";	
+						err = true;
+					}.)
+			']' .
 	
 	Asig = ((tInc 	(.if(o1.var_type == INT){
 						gen.push_back(Cuadruplo(SUM, o1.name, "1" , o1.name));
@@ -134,8 +161,8 @@ PRODUCTIONS
 						cout << "TYPE MISMATCH! :" << o1.name << '\n';
 						err = TRUE;
 					}.)| 
-			Asig2) | 
-			Arr Asig2)';'.
+			Asig2) | Arr2
+			Asig2)';'.
 	
 	Asig2 = '=' ExpOY (.if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1){
 							gen.push_back(Cuadruplo(ASI, operandos.top().name, "" , o1.name));
@@ -285,34 +312,36 @@ PRODUCTIONS
 				o2.var_type = ctype;
 				.).
 	
-	Decl (. string nameL;.) 
+	Decl (. string nameL; dim = 0;.) 
 			= (New | Tipo idV (.nameL = conv(t->val); .)
 			( '=' CTES | Arr) (.if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
 									dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
-									dim = 0;
 								} else {
 									cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 									err = TRUE;
 								}
+								if(dim == 0){
+									if(c.cubo[o2.var_type][type][ASI] != -1){
+										gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
+									} else {
+										cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
+										err = TRUE;
+									}
+								}.) 
+			{',' idV (. nameL = conv(t->val); dim = 0;.) 
+			( '=' CTES | Arr )(.if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
+								dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+							} else {
+								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+								err = TRUE;
+							}
+							if(dim == 0){
 								if(c.cubo[o2.var_type][type][ASI] != -1){
 									gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
 								} else {
 									cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 									err = TRUE;
-								}.) 
-			{',' idV (. nameL = conv(t->val); .) 
-			( '=' CTES | Arr )(.if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
-								dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
-								dim = 0;
-							} else {
-								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-								err = TRUE;
-							}
-							if(c.cubo[o2.var_type][type][ASI] != -1){
-								gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
-							} else {
-								cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
-								err = TRUE;
+								}
 							}.)}) 
 			';'.
 	
@@ -364,7 +393,7 @@ PRODUCTIONS
 				= (idV (.temp = conv(t->val); 
 						if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 							o1.name = temp;
-							o1.var_dim = 0;
+							o1.var_dim = dirProc[name].vars[temp].var_dim;
 							o1.var_type = dirProc[name].vars[temp].var_type;
 						}else if(dirProc.find(temp) != dirProc.end()){
 							o1.name = temp;
@@ -374,7 +403,7 @@ PRODUCTIONS
 							cout << "UNDECLARED VARIABLE: " << temp << '\n';
 							err = TRUE;
 						}.) 
-				(Asig | Reg)) | Metodo ';' | Ciclo | Esc | Lec | ConG.
+				(Asig | Llamada)) | Metodo ';' | Ciclo | Esc | Lec | ConG.
 	
 	Exp 	= Termino 
 			{(.if(!oper.empty() && (oper.top() == SUM || 
@@ -510,7 +539,7 @@ PRODUCTIONS
 						cout << "UNDECLARED VARIABLE: " << temp << '\n';
 						err = true;
 					}.)
-				[Reg|Arr] | 
+				[Llamada|Arr2] | 
 				CTE (.string temp = conv(t->val);
 					operandos.push(CVariable(temp, ctype, 0));
 				.) | Metodo).
@@ -639,7 +668,7 @@ PRODUCTIONS
 						}
 					.)[',' Param].
 					
-	Reg = '.' (Metodo | idV).
+	Llamada = '.' (Metodo | idV).
 	
 	Return = tRet ExpOY ';'.
 	

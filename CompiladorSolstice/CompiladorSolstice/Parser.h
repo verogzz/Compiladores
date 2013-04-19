@@ -152,9 +152,10 @@ string avail2(int al){
 	void Class();
 	void Main();
 	void Arr();
+	void Arr2();
+	void ExpOY();
 	void Asig();
 	void Asig2();
-	void ExpOY();
 	void Atributo();
 	void Vis();
 	void Tipo();
@@ -174,7 +175,7 @@ string avail2(int al){
 	void Decl();
 	void New();
 	void Esc();
-	void Reg();
+	void Llamada();
 	void Metodo();
 	void Lec();
 	void Exp();

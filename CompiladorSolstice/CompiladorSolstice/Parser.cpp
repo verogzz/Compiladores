@@ -127,53 +127,37 @@ void Parser::Main() {
 
 void Parser::Arr() {
 		Expect(34 /* "[" */);
-		if (la->kind == _idV) {
-			Get();
-		} else if (la->kind == _cteI) {
-			Get();
-		} else SynErr(56);
-		Expect(35 /* "]" */);
-		dim = 1; 
-}
-
-void Parser::Asig() {
-		if (la->kind == _tInc || la->kind == _tDec || la->kind == 37 /* "=" */) {
-			if (la->kind == _tInc) {
-				Get();
-				if(o1.var_type == INT){
-				gen.push_back(Cuadruplo(SUM, o1.name, "1" , o1.name));
-				} else {
-				cout << "TYPE MISMATCH! :" << o1.name << '\n';
-				err = TRUE;
-				}
-			} else if (la->kind == _tDec) {
-				Get();
-				if(o1.var_type == INT){
-				gen.push_back(Cuadruplo(SUB, o1.name, "1" , o1.name));
-				} else {
-				cout << "TYPE MISMATCH! :" << o1.name << '\n';
-				err = TRUE;
-				}
-			} else {
-				Asig2();
-			}
-		} else if (la->kind == 34 /* "[" */) {
-			Arr();
-			Asig2();
-		} else SynErr(57);
-		Expect(36 /* ";" */);
-}
-
-void Parser::Asig2() {
-		Expect(37 /* "=" */);
-		ExpOY();
-		if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1){
-		gen.push_back(Cuadruplo(ASI, operandos.top().name, "" , o1.name));
-		operandos.pop();
-		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
-		err = TRUE;
+		Expect(_cteI);
+		dim = atoi(&conv(t->val)[0]);
+		if(dim < 2){
+		cout << "ARRAY SIZE MUST BE GREATER THAN ONE!\n";
 		}
+		Expect(35 /* "]" */);
+}
+
+void Parser::Arr2() {
+		Expect(34 /* "[" */);
+		if(o1.var_dim < 1){
+		cout << "VARIABLE IS NOT AN ARRAY!\n";	
+		err = true;
+		}
+		ExpOY();
+		if(!operandos.empty()){
+		o2 = operandos.top();
+		operandos.pop();
+		if(o2.var_type == INT){
+		gen.push_back(Cuadruplo(VER, o2.name, "0", avail2(o1.var_dim)));
+		gen.push_back(Cuadruplo(SUM, o2.name, "dirBase", avail()));
+		availNum++;
+		}else{
+		cout << "EXPRESSION MUST BE INT TYPE!\n";	
+		err = true;
+		}
+		}else{
+		cout << "ERROR!\n";	
+		err = true;
+		}
+		Expect(35 /* "]" */);
 }
 
 void Parser::ExpOY() {
@@ -224,6 +208,46 @@ void Parser::ExpOY() {
 		}
 }
 
+void Parser::Asig() {
+		if (la->kind == _tInc || la->kind == _tDec || la->kind == 37 /* "=" */) {
+			if (la->kind == _tInc) {
+				Get();
+				if(o1.var_type == INT){
+				gen.push_back(Cuadruplo(SUM, o1.name, "1" , o1.name));
+				} else {
+				cout << "TYPE MISMATCH! :" << o1.name << '\n';
+				err = TRUE;
+				}
+			} else if (la->kind == _tDec) {
+				Get();
+				if(o1.var_type == INT){
+				gen.push_back(Cuadruplo(SUB, o1.name, "1" , o1.name));
+				} else {
+				cout << "TYPE MISMATCH! :" << o1.name << '\n';
+				err = TRUE;
+				}
+			} else {
+				Asig2();
+			}
+		} else if (la->kind == 34 /* "[" */) {
+			Arr2();
+			Asig2();
+		} else SynErr(56);
+		Expect(36 /* ";" */);
+}
+
+void Parser::Asig2() {
+		Expect(37 /* "=" */);
+		ExpOY();
+		if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1){
+		gen.push_back(Cuadruplo(ASI, operandos.top().name, "" , o1.name));
+		operandos.pop();
+		} else {
+		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		err = TRUE;
+		}
+}
+
 void Parser::Atributo() {
 		name = "";
 		vis = type = -1;
@@ -251,7 +275,7 @@ void Parser::Vis() {
 		} else if (la->kind == _tPro) {
 			Get();
 			vis = PROTECT; 
-		} else SynErr(58);
+		} else SynErr(57);
 }
 
 void Parser::Tipo() {
@@ -267,7 +291,7 @@ void Parser::Tipo() {
 		} else if (la->kind == _tBoo) {
 			Get();
 			type = BOOLEAN; 
-		} else SynErr(59);
+		} else SynErr(58);
 }
 
 void Parser::Bloque() {
@@ -282,7 +306,7 @@ void Parser::Bloque() {
 				MetodoR();
 			} else if (la->kind == _tVoi) {
 				MetodoV();
-			} else SynErr(60);
+			} else SynErr(59);
 		}
 }
 
@@ -408,7 +432,7 @@ void Parser::Estatuto() {
 			temp = conv(t->val); 
 			if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 			o1.name = temp;
-			o1.var_dim = 0;
+			o1.var_dim = dirProc[name].vars[temp].var_dim;
 			o1.var_type = dirProc[name].vars[temp].var_type;
 			}else if(dirProc.find(temp) != dirProc.end()){
 			o1.name = temp;
@@ -421,8 +445,8 @@ void Parser::Estatuto() {
 			if (StartOf(4)) {
 				Asig();
 			} else if (la->kind == 51 /* "." */) {
-				Reg();
-			} else SynErr(61);
+				Llamada();
+			} else SynErr(60);
 			break;
 		}
 		case _idM: {
@@ -446,7 +470,7 @@ void Parser::Estatuto() {
 			ConG();
 			break;
 		}
-		default: SynErr(62); break;
+		default: SynErr(61); break;
 		}
 }
 
@@ -593,7 +617,7 @@ void Parser::CTE() {
 			cts.insert(CTS::value_type(c, Constantes(ctype, 0)));
 			}
 			
-		} else SynErr(63);
+		} else SynErr(62);
 }
 
 void Parser::CTES() {
@@ -620,11 +644,11 @@ void Parser::CTES() {
 			o2.var_dim = 0;
 			o2.var_type = ctype;
 			
-		} else SynErr(64);
+		} else SynErr(63);
 }
 
 void Parser::Decl() {
-		string nameL;
+		string nameL; dim = 0;
 		if (la->kind == _idO) {
 			New();
 		} else if (StartOf(3)) {
@@ -636,45 +660,47 @@ void Parser::Decl() {
 				CTES();
 			} else if (la->kind == 34 /* "[" */) {
 				Arr();
-			} else SynErr(65);
+			} else SynErr(64);
 			if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
 			dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
-			dim = 0;
 			} else {
 			cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 			err = TRUE;
 			}
+			if(dim == 0){
 			if(c.cubo[o2.var_type][type][ASI] != -1){
 			gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
 			} else {
 			cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
+			}
 			while (la->kind == 42 /* "," */) {
 				Get();
 				Expect(_idV);
-				nameL = conv(t->val); 
+				nameL = conv(t->val); dim = 0;
 				if (la->kind == 37 /* "=" */) {
 					Get();
 					CTES();
 				} else if (la->kind == 34 /* "[" */) {
 					Arr();
-				} else SynErr(66);
+				} else SynErr(65);
 				if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
 				dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
-				dim = 0;
 				} else {
 				cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 				err = TRUE;
 				}
+				if(dim == 0){
 				if(c.cubo[o2.var_type][type][ASI] != -1){
 				gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
 				} else {
 				cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 				err = TRUE;
 				}
+				}
 			}
-		} else SynErr(67);
+		} else SynErr(66);
 		Expect(36 /* ";" */);
 }
 
@@ -752,13 +778,13 @@ void Parser::Esc() {
 		Expect(36 /* ";" */);
 }
 
-void Parser::Reg() {
+void Parser::Llamada() {
 		Expect(51 /* "." */);
 		if (la->kind == _idM) {
 			Metodo();
 		} else if (la->kind == _idV) {
 			Get();
-		} else SynErr(68);
+		} else SynErr(67);
 }
 
 void Parser::Metodo() {
@@ -1024,9 +1050,9 @@ void Parser::Factor() {
 			}
 			if (la->kind == 34 /* "[" */ || la->kind == 51 /* "." */) {
 				if (la->kind == 51 /* "." */) {
-					Reg();
+					Llamada();
 				} else {
-					Arr();
+					Arr2();
 				}
 			}
 		} else if (StartOf(5)) {
@@ -1036,7 +1062,7 @@ void Parser::Factor() {
 			
 		} else if (la->kind == _idM) {
 			Metodo();
-		} else SynErr(69);
+		} else SynErr(68);
 }
 
 void Parser::Lista() {
@@ -1255,20 +1281,19 @@ void Errors::SynErr(int line, int col, int n) {
 			case 53: s = coco_string_create(L"\"/\" expected"); break;
 			case 54: s = coco_string_create(L"\"%\" expected"); break;
 			case 55: s = coco_string_create(L"??? expected"); break;
-			case 56: s = coco_string_create(L"invalid Arr"); break;
-			case 57: s = coco_string_create(L"invalid Asig"); break;
-			case 58: s = coco_string_create(L"invalid Vis"); break;
-			case 59: s = coco_string_create(L"invalid Tipo"); break;
-			case 60: s = coco_string_create(L"invalid Bloque"); break;
+			case 56: s = coco_string_create(L"invalid Asig"); break;
+			case 57: s = coco_string_create(L"invalid Vis"); break;
+			case 58: s = coco_string_create(L"invalid Tipo"); break;
+			case 59: s = coco_string_create(L"invalid Bloque"); break;
+			case 60: s = coco_string_create(L"invalid Estatuto"); break;
 			case 61: s = coco_string_create(L"invalid Estatuto"); break;
-			case 62: s = coco_string_create(L"invalid Estatuto"); break;
-			case 63: s = coco_string_create(L"invalid CTE"); break;
-			case 64: s = coco_string_create(L"invalid CTES"); break;
+			case 62: s = coco_string_create(L"invalid CTE"); break;
+			case 63: s = coco_string_create(L"invalid CTES"); break;
+			case 64: s = coco_string_create(L"invalid Decl"); break;
 			case 65: s = coco_string_create(L"invalid Decl"); break;
 			case 66: s = coco_string_create(L"invalid Decl"); break;
-			case 67: s = coco_string_create(L"invalid Decl"); break;
-			case 68: s = coco_string_create(L"invalid Reg"); break;
-			case 69: s = coco_string_create(L"invalid Factor"); break;
+			case 67: s = coco_string_create(L"invalid Llamada"); break;
+			case 68: s = coco_string_create(L"invalid Factor"); break;
 
 		default:
 		{

@@ -58,6 +58,7 @@ using namespace std;
 #define RET 22
 #define MR 23
 #define PAR 24
+#define VER 25
 
 class Variable {
 public: 
