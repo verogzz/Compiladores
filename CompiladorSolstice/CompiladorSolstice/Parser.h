@@ -5,6 +5,7 @@
 
 #include "Tabla.h"
 #include "Cubo.h"
+#include "Memoria.h"
 #include <iostream>
 #include <sstream>
 
@@ -129,18 +130,6 @@ string conv(wchar_t* x){
 	s.assign(ws.begin(), ws.end());
 	return s;
 };
-
-string avail(){
-    stringstream s;
-    s << "t" << availNum;
-    return s.str();
-}
-
-string avail2(int al){
-    stringstream s;
-    s << "" << al;
-    return s.str();
-}
 
 
 

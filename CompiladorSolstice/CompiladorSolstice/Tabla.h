@@ -64,8 +64,9 @@ class Variable {
 public: 
 	int var_type;
 	int var_dim;
+	int dir;
 	Variable();
-	Variable(int t, int d);
+	Variable(int t, int d, int dr);
 };
 typedef std::map<string , Variable> VMAP;
 
@@ -74,11 +75,11 @@ public:
 	int att_vis;
 	int att_type;
 	int att_mtd;
-	int mtd_q;
+	int dir;
 	vector<int> params;
 	VMAP vars;
 	Attribute();
-	Attribute(int vis, int type, int a_type, int dir);
+	Attribute(int vis, int type, int a_type, int dr);
 	Attribute(int vis, int type, int a_type);
 };
 typedef std::map<string, Attribute> CTABLE;
@@ -95,24 +96,24 @@ typedef std::map<string, ClassStruct> TABLE;
 class Cuadruplo {
 public:
 	int operador;
-	string op1;
-	string op2;
-	string res;
+	int op1;
+	int op2;
+	int res;
 	Cuadruplo();
-	Cuadruplo(int a, string o1, string o2, string res);
+	Cuadruplo(int a, int o1, int o2, int res);
 };
 
 class CVariable : public Variable{
 public:
 	string name;
 	CVariable();
-	CVariable(string n, int type, int dim);
+	CVariable(string n, int type, int dim, int dr);
 };
 
 class Constantes {
 public:
 	int type;
-	int memoria;
+	int dir;
 	Constantes();
 	Constantes(int t, int m);
 };

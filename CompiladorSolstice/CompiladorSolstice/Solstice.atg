@@ -1,5 +1,6 @@
 #include "Tabla.h"
 #include "Cubo.h"
+#include "Memoria.h"
 #include <iostream>
 #include <sstream>
 COMPILER Solstice
@@ -47,18 +48,6 @@ string conv(wchar_t* x){
 	s.assign(ws.begin(), ws.end());
 	return s;
 };
-
-string avail(){
-    stringstream s;
-    s << "t" << availNum;
-    return s.str();
-}
-
-string avail2(int al){
-    stringstream s;
-    s << "" << al;
-    return s.str();
-}
 
 CHARACTERS
   letra = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
@@ -117,7 +106,9 @@ PRODUCTIONS
 					name = "";
 					gi = gd = gb = gs = li = ld = lb = ls = ti = td = tb = ts = ci = cd = cb = cs = 0;
 					className = "";
-					err = false;	.)
+					err = false;
+					cts.insert(CTS::value_type("1", Constantes(INT, bci + ci)));
+					ci++;.)
 					Class Main.
 	
 	Arr = 	'[' 
@@ -127,7 +118,7 @@ PRODUCTIONS
 					}.)
 			']' .
 	
-	Arr2 = 	'['	(.if(o1.var_dim < 1){
+	Arr2 = 	'['	(.if(o1.var_dim < 2){
 				cout << "VARIABLE IS NOT AN ARRAY!\n";	
 				err = true;
 				}.)
@@ -135,10 +126,15 @@ PRODUCTIONS
 						o2 = operandos.top();
 						operandos.pop();
 						if(o2.var_type == INT){
-							gen.push_back(Cuadruplo(VER, o2.name, "0", avail2(o1.var_dim)));
-							gen.push_back(Cuadruplo(SUM, o2.name, "dirBase", avail()));
-							operandos.pus
-							availNum++;
+							gen.push_back(Cuadruplo(VER, o2.dir, -1, o1.var_dim));
+							int mem = bti + ti;
+							if(mem > lti){
+								cout << "OUT OF MEMORY!\n";
+								err = true;
+							}
+							ti++;
+							gen.push_back(Cuadruplo(SUM, o2.dir, o1.dir, mem));
+							o1.var_dim = 0;
 						}else{
 							cout << "EXPRESSION MUST BE INT TYPE!\n";	
 							err = true;
@@ -149,14 +145,14 @@ PRODUCTIONS
 					}.)
 			']' .
 	
-	Asig = ((tInc 	(.if(o1.var_type == INT){
-						gen.push_back(Cuadruplo(SUM, o1.name, "1" , o1.name));
+	Asig = ((tInc 	(.if(o1.var_type == INT && o1.var_dim < 2){
+						gen.push_back(Cuadruplo(SUM, o1.dir, cts["1"].dir , o1.dir));
 					} else {
 						cout << "TYPE MISMATCH! :" << o1.name << '\n';
 						err = TRUE;
 					}.)| 
-			tDec 	(.if(o1.var_type == INT){
-						gen.push_back(Cuadruplo(SUB, o1.name, "1" , o1.name));
+			tDec 	(.if(o1.var_type == INT && o1.var_dim < 2){
+						gen.push_back(Cuadruplo(SUB, o1.dir, cts["1"].dir , o1.dir));
 					} else {
 						cout << "TYPE MISMATCH! :" << o1.name << '\n';
 						err = TRUE;
@@ -164,11 +160,13 @@ PRODUCTIONS
 			Asig2) | Arr2
 			Asig2)';'.
 	
-	Asig2 = '=' ExpOY (.if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1){
-							gen.push_back(Cuadruplo(ASI, operandos.top().name, "" , o1.name));
+	Asig2 = '=' ExpOY (.if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1 && 
+							o1.var_dim == operandos.top().var_dim){
+							gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1 , o1.dir));
 							operandos.pop();
 						} else {
-							cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+							cout << "TYPE MISMATCH! :" << o1.name << '\t' << operandos.top().name << '\n';
+							operandos.pop();
 							err = TRUE;
 						}.).
 	
@@ -177,7 +175,38 @@ PRODUCTIONS
 				= 
 				Vis Tipo idV (.	name = conv(t->val);
 								if(dirProc.find(name) == dirProc.end()){
-									dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 0)));
+									int mem = 0;
+									switch (type){
+									case INT:	mem = bgi + gi;
+												if(mem > lgi){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												gi++;
+												break;
+									case DOUBLE:	mem = bgd + gd;
+												if(mem > lgd){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												gd++;
+												break;
+									case STRING:	mem = bgs + gs;
+												if(mem > lgs){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												gs++;
+												break;
+									case BOOLEAN:	mem = bgb + gb;
+												if(mem > lgb){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												gb++;
+												break;
+									}
+									dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 0, mem)));
 								} else {
 									cout << "PREVIOUSLY DECLARED ATTRIBUTE: " << name << '\n';
 									err = TRUE;
@@ -194,7 +223,7 @@ PRODUCTIONS
 				if(boolRes.var_type != BOOLEAN){
 					cout << "EXPRESSION MUST BE BOOL TYPE!\n";
 				}else{
-					gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+					gen.push_back(Cuadruplo(GTF, boolRes.dir, -1 , -1));
 					saltos.push(gen.size() - 1);
 				}.)	
 			'{' {Estatuto} 
@@ -202,15 +231,28 @@ PRODUCTIONS
 				saltos.pop();
 				int ret = saltos.top();
 				saltos.pop();
-				gen.push_back(Cuadruplo(GTO, avail2(ret), "" , ""));
-				gen[falso].res = avail2(gen.size());
+				gen.push_back(Cuadruplo(GTO, ret, -1 , -1));
+				gen[falso].res = gen.size();
 				.).
+				
 	Class 	(.string ext = "";
 			className = "";
 			dirProc.clear();.)
 			= 
 			tCla idO (. className = conv(t->val); .) 
-			[tExt idO (. ext = conv(t->val);.)] 
+			[tExt idO (. ext = conv(t->val);
+						if(dirGral.find(ext) != dirGral.end()){
+							for(CTABLE::iterator i = dirGral[ext].attributes.begin() ; 
+								i != dirGral[ext].attributes.end(); 
+								i++){
+									if(i->second.att_vis != PRIVATE){
+										dirProc.insert(CTABLE::value_type(i->first, i->second));
+									}
+							}
+						}else{
+							cout << "PARENT CLASS NOT DECLARED!\n";
+							err = true;
+						}.)] 
 			'{' Bloque 
 			'}' (.if(dirGral.find(className) == dirGral.end()){
 					dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc)));
@@ -226,15 +268,15 @@ PRODUCTIONS
 				if(boolRes.var_type != BOOLEAN){
 					cout << "EXPRESSION MUST BE BOOL TYPE!\n";
 				}else{
-					gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+					gen.push_back(Cuadruplo(GTF, boolRes.dir, -1 , -1));
 					saltos.push(gen.size() - 1);
 				}.)
 			'{' Estatuto {Estatuto} '}' 
 			{ tEif (.int ps = saltos.top();
 					saltos.pop();
-					gen.push_back(Cuadruplo(GTO, "", "" , ""));
+					gen.push_back(Cuadruplo(GTO, -1, -1, -1));
 					saltos.push(gen.size() - 1);
-					gen[ps].res = avail2(gen.size());.)
+					gen[ps].res = gen.size();.)
 			'(' ExpOY 
 			')' (.ifs.top()++;
 				CVariable boolRes = operandos.top();
@@ -242,7 +284,7 @@ PRODUCTIONS
 				if(boolRes.var_type != BOOLEAN){
 					cout << "EXPRESSION MUST BE BOOL TYPE!\n";
 				}else{
-					gen.push_back(Cuadruplo(GTF, boolRes.name, "" , ""));
+					gen.push_back(Cuadruplo(GTF, boolRes.dir, -1, -1));
 					saltos.push(gen.size() - 1);
 				}.)
 			'{' Estatuto {Estatuto} '}'}.
@@ -250,8 +292,8 @@ PRODUCTIONS
 	Con2 = 	tEls(.if(gen[saltos.top()].operador != GTO){
 				int ps = saltos.top();
 				saltos.pop();
-				gen.push_back(Cuadruplo(GTO, "", "" , ""));
-				gen[ps].res = avail2(gen.size());
+				gen.push_back(Cuadruplo(GTO, -1, -1, -1));
+				gen[ps].res = gen.size();
 				saltos.push(gen.size() - 1);
 				}.)
 			'{' Estatuto {Estatuto} '}'.
@@ -263,9 +305,9 @@ PRODUCTIONS
 					int ps = saltos.top();
 					saltos.pop();
 					if(gen[ps].operador == GTO)
-						gen[ps].op1 = avail2(gen.size());
+						gen[ps].op1 = gen.size();
 					else if (gen[ps].operador == GTF)
-						gen[ps].res = avail2(gen.size());
+						gen[ps].res = gen.size();
 					gts--;
 					}.).
 	
@@ -282,15 +324,45 @@ PRODUCTIONS
 				'(' [Param] ')' '{' {Init} '}'.
 	
 	CTE (.ctype = -1;.)
-		= 	cteS (. ctype = 2; .)| 
+		= 	(cteS (. ctype = 2; .)| 
 			cteI (. ctype = 0; .)| 
 			cteD (. ctype = 1; .)| 
-			cteB (. ctype = 3; .)
+			cteB (. ctype = 3; .))
 			(.string c = conv(t->val);
 				if(cts.find(c) == cts.end()){
-					cts.insert(CTS::value_type(c, Constantes(ctype, 0)));
-				}
-			.).
+					int mem = 0;
+					switch (ctype){
+					case INT:	mem = bci + ci;
+								if(mem > lci){
+									cout << "OUT OF MEMORY!\n";
+									err = true;
+								}
+								ci++;
+								break;
+					case DOUBLE:	mem = bcd + cd;
+								if(mem > lcd){
+									cout << "OUT OF MEMORY!\n";
+									err = true;
+								}
+								cd++;
+								break;
+					case STRING:	mem = bcs + cs;
+								if(mem > lcs){
+									cout << "OUT OF MEMORY!\n";
+									err = true;
+								}
+								cs++;
+								break;
+					case BOOLEAN:	mem = bcb + cb;
+								if(mem > lcb){
+									cout << "OUT OF MEMORY!\n";
+									err = true;
+								}
+								cb++;
+								break;
+					}
+					cts.insert(CTS::value_type(c, Constantes(ctype, mem)));
+				}.).
 	
 	CTES (. string temp = ""; .)
 		= 	idV (.temp = conv(t->val);
@@ -298,10 +370,12 @@ PRODUCTIONS
 					o2.name = temp;
 					o2.var_dim = dirProc[name].vars[temp].var_dim;
 					o2.var_type = dirProc[name].vars[temp].var_type;
+					o2.dir = dirProc[name].vars[temp].dir;
 				} else if(dirProc.find(temp) != dirProc.end()){
 					o2.name = temp;
 					o2.var_dim = 0;
 					o2.var_type = dirProc[name].att_type;
+					o2.dir = dirProc[name].dir;
 				} else {
 					cout << "UNDECLARED VARIABLE." << '\n';
 					err = TRUE;
@@ -310,34 +384,95 @@ PRODUCTIONS
 				o2.name = temp;
 				o2.var_dim = 0;
 				o2.var_type = ctype;
+				o2.dir = cts[temp].dir;
 				.).
 	
 	Decl (. string nameL; dim = 0;.) 
-			= (New | Tipo idV (.nameL = conv(t->val); .)
+			= (New | Tipo idV (.nameL = conv(t->val); int mem = 0;.)
 			( '=' CTES | Arr) (.if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
-									dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+									switch (type){
+									case INT:	mem = bli + li;
+												if(mem > lli){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												li++;
+												break;
+									case DOUBLE:	mem = bld + ld;
+												if(mem > lld){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												ld++;
+												break;
+									case STRING:	mem = bls + ls;
+												if(mem > lls){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												ls++;
+												break;
+									case BOOLEAN:	mem = blb + lb;
+												if(mem > llb){
+													cout << "OUT OF MEMORY!\n";
+													err = true;
+												}
+												lb++;
+												break;
+									}
+									dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim, mem)));
 								} else {
 									cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 									err = TRUE;
 								}
 								if(dim == 0){
 									if(c.cubo[o2.var_type][type][ASI] != -1){
-										gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
+										gen.push_back(Cuadruplo(ASI, o2.dir, -1, mem));
 									} else {
 										cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 										err = TRUE;
 									}
 								}.) 
-			{',' idV (. nameL = conv(t->val); dim = 0;.) 
+			{',' idV (. nameL = conv(t->val); dim = 0; mem = 0;.) 
 			( '=' CTES | Arr )(.if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
-								dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim)));
+								switch (type){
+								case INT:	mem = bli + li;
+											if(mem > lli){
+												cout << "OUT OF MEMORY!\n";
+												err = true;
+											}
+											li++;
+											break;
+								case DOUBLE:	mem = bld + ld;
+											if(mem > lld){
+												cout << "OUT OF MEMORY!\n";
+												err = true;
+											}
+											ld++;
+											break;
+								case STRING:	mem = bls + ls;
+											if(mem > lls){
+												cout << "OUT OF MEMORY!\n";
+												err = true;
+											}
+											ls++;
+											break;
+								case BOOLEAN:	mem = blb + lb;
+											if(mem > llb){
+												cout << "OUT OF MEMORY!\n";
+												err = true;
+											}
+											lb++;
+											break;
+								}
+								dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim, mem)));
 							} else {
 								cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 								err = TRUE;
 							}
 							if(dim == 0){
 								if(c.cubo[o2.var_type][type][ASI] != -1){
-									gen.push_back(Cuadruplo(ASI,o2.name, "" , nameL));
+									gen.push_back(Cuadruplo(ASI, o2.dir, -1, mem));
 								} else {
 									cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
 									err = TRUE;
@@ -353,9 +488,15 @@ PRODUCTIONS
 				operandos.pop();
 				int op = oper.top();
 				oper.pop();
-				if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-					gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-					operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+				if(c.cubo[o1.var_type][o2.var_type][op] != -1 && o1.var_dim == o2.var_dim){
+					int mem = bts + ts;
+					if(mem > lts){
+						cout << "OUT OF MEMORY!\n";
+						err = true;
+					}
+					ts++;
+					gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+					operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 					availNum++;
 				} else {
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -370,9 +511,15 @@ PRODUCTIONS
 						operandos.pop();
 						int op = oper.top();
 						oper.pop();
-						if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-							gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-							operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+						if(c.cubo[o1.var_type][o2.var_type][op] != -1 && o1.var_dim == o2.var_dim){
+							int mem = bts + ts;
+							if(mem > lts){
+								cout << "OUT OF MEMORY!\n";
+								err = true;
+							}
+							ts++;
+							gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+							operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 							availNum++;
 						} else {
 							cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -381,10 +528,10 @@ PRODUCTIONS
 					}.) 
 			')' (.CVariable strRes = operandos.top();
 				operandos.pop();
-				if(strRes.var_type != STRING){
+				if(strRes.var_type != STRING && strRes.var_dim < 2){
 					cout << "EXPRESSION MUST BE STRING TYPE!\n";
 				}else{
-					gen.push_back(Cuadruplo(WRI, strRes.name, "" , ""));
+					gen.push_back(Cuadruplo(WRI, strRes.dir, -1, -1));
 				}.)';'.
 	
 	Estatuto 	(.string temp = "";
@@ -395,10 +542,12 @@ PRODUCTIONS
 							o1.name = temp;
 							o1.var_dim = dirProc[name].vars[temp].var_dim;
 							o1.var_type = dirProc[name].vars[temp].var_type;
+							o1.dir = dirProc[name].vars[temp].dir;
 						}else if(dirProc.find(temp) != dirProc.end()){
 							o1.name = temp;
 							o1.var_dim = 0;
 							o1.var_type = dirProc[temp].att_type;
+							o1.dir = dirProc[temp].dir;
 						}else {
 							cout << "UNDECLARED VARIABLE: " << temp << '\n';
 							err = TRUE;
@@ -414,10 +563,28 @@ PRODUCTIONS
 				operandos.pop();
 				int op = oper.top();
 				oper.pop();
-				if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-					gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-					operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
-					availNum++;
+				if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+					o1.var_dim < 2 &&
+					o1.var_dim == o2.var_dim){
+					int mem = 0;
+					switch (c.cubo[o1.var_type][o2.var_type][op]){
+					case INT:	mem = bti + ti;
+						if(mem > lti){
+							cout << "OUT OF MEMORY!\n";
+							err = true;
+						}
+						ti++;
+						break;
+					case DOUBLE:	mem = btd + td;
+						if(mem > ltd){
+							cout << "OUT OF MEMORY!\n";
+							err = true;
+						}
+						td++;
+						break;
+					}
+					gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+					operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 				} else {
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 					err = TRUE;
@@ -433,9 +600,28 @@ PRODUCTIONS
 				operandos.pop();
 				int op = oper.top();
 				oper.pop();
-				if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-					gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-					operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+				if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+					o1.var_dim < 2 &&
+					o1.var_dim == o2.var_dim){
+					int mem = 0;
+					switch (c.cubo[o1.var_type][o2.var_type][op]){
+					case INT:	mem = bti + ti;
+								if(mem > lti){
+									cout << "OUT OF MEMORY!\n";
+									err = true;
+								}
+								ti++;
+								break;
+					case DOUBLE:	mem = btd + td;
+								if(mem > ltd){
+									cout << "OUT OF MEMORY!\n";
+									err = true;
+								}
+								td++;
+								break;
+					}
+					gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+					operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 					availNum++;
 				} else {
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -443,7 +629,8 @@ PRODUCTIONS
 				}
 				}.).
 	
-	ExpOY 	= Expresion 
+	ExpOY 	= (.int mem = 0;.)
+				Expresion 
 			{(.if(!oper.empty() && (oper.top() == AND || 
 				oper.top() == OR)){
 				CVariable o2 = operandos.top();
@@ -452,9 +639,17 @@ PRODUCTIONS
 				operandos.pop();
 				int op = oper.top();
 				oper.pop();
-				if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-					gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-					operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+				if(c.cubo[o1.var_type][o2.var_type][op] != -1&& 
+					o1.var_dim < 2 &&
+					o1.var_dim == o2.var_dim){
+					mem = btb + tb;
+					if(mem > ltb){
+						cout << "OUT OF MEMORY!\n";
+						err = true;
+					}
+					tb++;
+					gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+					operandos.push(CVariable("memoria",c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 					availNum++;
 				} else {
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -471,9 +666,17 @@ PRODUCTIONS
 				operandos.pop();
 				int op = oper.top();
 				oper.pop();
-				if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-					gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-					operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+				if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+					o1.var_dim < 2 &&
+					o1.var_dim == o2.var_dim){
+					mem = btb + tb;
+					if(mem > ltb){
+						cout << "OUT OF MEMORY!\n";
+						err = true;
+					}
+					tb++;
+					gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+					operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 					availNum++;
 				} else {
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -481,7 +684,8 @@ PRODUCTIONS
 				}
 			}.).
 	
-	Expresion 	= Exp 
+	Expresion 	= (.int mem = 0;.)
+				Exp 
 				[(.if(!oper.empty() && (oper.top() == GEQ || 
 					oper.top() == LEQ || oper.top() == DIF ||
 					oper.top() == LT || oper.top() == GT ||
@@ -492,9 +696,17 @@ PRODUCTIONS
 					operandos.pop();
 					int op = oper.top();
 					oper.pop();
-					if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-						gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-						operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+					if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+					o1.var_dim < 2 &&
+					o1.var_dim == o2.var_dim){
+						mem = btb + tb;
+						if(mem > ltb){
+							cout << "OUT OF MEMORY!\n";
+							err = true;
+						}
+						tb++;
+						gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+						operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 						availNum++;
 					} else {
 						cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -517,9 +729,17 @@ PRODUCTIONS
 					operandos.pop();
 					int op = oper.top();
 					oper.pop();
-					if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-						gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-						operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+					if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+					o1.var_dim < 2 &&
+					o1.var_dim == o2.var_dim){
+						mem = btb + tb;
+						if(mem > ltb){
+							cout << "OUT OF MEMORY!\n";
+							err = true;
+						}
+						tb++;
+						gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+						operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 						availNum++;
 					} else {
 						cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -531,17 +751,17 @@ PRODUCTIONS
 				'(' (.oper.push(99);.) ExpOY 
 				')' (.oper.pop();.)| 
 				idV (.string temp = conv(t->val);
-					if(dirProc.find(temp) != dirProc.end()){
-						operandos.push(CVariable(temp, dirProc.find(temp)->second.att_type, dirProc.find(temp)->second.att_mtd));
-					} else if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-						operandos.push(CVariable(temp, dirProc[name].vars.find(temp)->second.var_type, dirProc[name].vars.find(temp)->second.var_dim));
+					if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+						operandos.push(CVariable(temp, dirProc[name].vars[temp].var_type, dirProc[name].vars[temp].var_dim, dirProc[name].vars[temp].dir));
+					} else if(dirProc.find(temp) != dirProc.end()){
+						operandos.push(CVariable(temp, dirProc[temp].att_type, dirProc[temp].att_mtd, dirProc[temp].dir));
 					} else {
 						cout << "UNDECLARED VARIABLE: " << temp << '\n';
 						err = true;
 					}.)
 				[Llamada|Arr2] | 
 				CTE (.string temp = conv(t->val);
-					operandos.push(CVariable(temp, ctype, 0));
+					operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));
 				.) | Metodo).
 	
 	Init = idV (.string temp = conv(t->val); 
@@ -549,12 +769,14 @@ PRODUCTIONS
 					o1.name = temp;
 					o1.var_dim = 0;
 					o1.var_type = dirProc[temp].att_type;
+					o1.dir = dirProc[temp].dir;
 				}else{
 					cout << "UNDECLARED VARIABLE: " << temp << '\n';
 					err = TRUE;
 				}.)  
-			'=' CTES(.if(c.cubo[o2.var_type][o1.var_type][ASI] != -1){
-						gen.push_back(Cuadruplo(ASI,o2.name, "" , o1.name));
+			'=' CTES(.if(c.cubo[o2.var_type][o1.var_type][ASI] != -1 && 
+						o1.var_dim == o2.var_dim){
+						gen.push_back(Cuadruplo(ASI,o2.dir, -1, o1.dir));
 					} else {
 						cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 						err = TRUE;
@@ -575,7 +797,7 @@ PRODUCTIONS
 							err = TRUE;
 						}.)
 			',' Tipo 	(.if(o1.var_type == type){
-							gen.push_back(Cuadruplo(REA,o1.name, "" , ""));
+							gen.push_back(Cuadruplo(REA, o1.dir, -1, -1));
 						} else {
 							cout << "TYPE MISMATCH! :" << o1.name << '\n';
 							err = TRUE;
@@ -603,23 +825,24 @@ PRODUCTIONS
 						cout << "UNDECLARED METHOD: " << name << '\n';
 						err = TRUE;
 					}
-					gen.push_back(Cuadruplo(ERA,name, "" , ""));.)
+					gen.push_back(Cuadruplo(ERA, -5, -1, -1));.)
 				'(' [Lista] (.if(t_params.size() == dirProc[name].params.size()){
 								for(int i = 0; i < dirProc[name].params.size(); i++){
 									if (t_params.at(i).var_type != dirProc[name].params.at(i)){
 										cout << "PARAMETER TYPES MISMATCH.\n";
 										i = dirProc[name].params.size();
 									}
-									gen.push_back(Cuadruplo(PAR, t_params.at(i).name, "" , avail2(i+1)));
+									gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , i+1));
 								}
 							}else{
 								cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
 							}
 							t_params.clear();.)
 				')'
-				(.gen.push_back(Cuadruplo(GSU, avail2(dirProc[name].mtd_q), "" , ""));.).
+				(.gen.push_back(Cuadruplo(GSU, dirProc[name].dir, -1, -1));.).
 	
-	MetodoR 	(.vis = type = -1;.)
+	MetodoR 	(.vis = type = -1;
+				li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	Tipo idM (.	name = conv(t->val);
 							if(dirProc.find(name) == dirProc.end()){
 								dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size())));
@@ -629,12 +852,12 @@ PRODUCTIONS
 							}
 						.) 
 				'(' [Param] ')' '{' {Decl} 
-				{Estatuto} Return  (.gen.push_back(Cuadruplo(MR, operandos.top().name, "", ""));
-									operandos.pop();.)
+				{Estatuto} Return 
 				'}' (. 	name = "";
-						gen.push_back(Cuadruplo(RET, "", "", ""));.).
+						gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
 						
-	MetodoV 	(.vis = type = -1;.)
+	MetodoV 	(.vis = type = -1;
+				li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	tVoi idM (.	name = conv(t->val);
 							if(dirProc.find(name) == dirProc.end()){
 								dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));
@@ -645,12 +868,12 @@ PRODUCTIONS
 						.) 
 				'(' [Param] ')' '{' {Decl} 
 				{Estatuto} '}' (. name = "";
-								gen.push_back(Cuadruplo(RET, "", "", ""));.).
+								gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
 						
 	New (. string nameL; .)  
 		= idO idV (.	nameL = conv(t->val);
 						if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
-							dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(4, 0)));
+							dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(4, 0, lcb)));
 						} else {
 							cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 							err = TRUE;
@@ -660,7 +883,38 @@ PRODUCTIONS
 	Param (. string nameL; .) 
 		= Tipo idV (.	nameL = conv(t->val);
 						if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
-							dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0)));
+							int mem = 0;
+							switch (type){
+							case INT:	mem = bli + li;
+										if(mem > lli){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										li++;
+										break;
+							case DOUBLE:	mem = bld + ld;
+										if(mem > lld){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										ld++;
+										break;
+							case STRING:	mem = bls + ls;
+										if(mem > lls){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										ls++;
+										break;
+							case BOOLEAN:	mem = blb + lb;
+										if(mem > llb){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										lb++;
+										break;
+							}
+							dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0, mem)));
 							dirProc[name].params.push_back(type);
 						} else {
 							cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
@@ -670,7 +924,19 @@ PRODUCTIONS
 					
 	Llamada = '.' (Metodo | idV).
 	
-	Return = tRet ExpOY ';'.
+	Return = 	tRet ExpOY (.if(operandos.size() != 0){
+								if(dirProc[name].att_type == operandos.top().var_type && 
+									operandos.top().var_dim < 2){
+									gen.push_back(Cuadruplo(MR, operandos.top().dir, -1, -1));
+									operandos.pop();
+								}else{
+									cout << "RETURN VALUE IS NOT THE EXPECTED TYPE!\n";
+									err = true;
+								}
+							}else{
+								err = true;
+							}.)
+				';'.
 	
 	Termino = Factor {(.if(!oper.empty() && (oper.top() == MUL || 
 							oper.top() == DIV || 
@@ -681,9 +947,28 @@ PRODUCTIONS
 								operandos.pop();
 								int op = oper.top();
 								oper.pop();
-								if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-									gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-									operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+								if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+									o1.var_dim < 2 &&
+									o1.var_dim == o2.var_dim){
+									int mem = 0;
+									switch (c.cubo[o1.var_type][o2.var_type][op]){
+									case INT:	mem = bti + ti;
+										if(mem > lti){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										ti++;
+										break;
+									case DOUBLE:	mem = btd + td;
+										if(mem > ltd){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										td++;
+										break;
+									}
+									gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+									operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 									availNum++;
 								} else {
 									cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
@@ -703,9 +988,28 @@ PRODUCTIONS
 								operandos.pop();
 								int op = oper.top();
 								oper.pop();
-								if(c.cubo[o1.var_type][o2.var_type][op] != -1){
-									gen.push_back(Cuadruplo(op,o1.name,o2.name, avail()));
-									operandos.push(CVariable(avail(),c.cubo[o1.var_type][o2.var_type][op],0));
+								if(c.cubo[o1.var_type][o2.var_type][op] != -1 && 
+									o1.var_dim < 2 &&
+									o1.var_dim == o2.var_dim){
+									int mem = 0;
+									switch (c.cubo[o1.var_type][o2.var_type][op]){
+									case INT:	mem = bti + ti;
+										if(mem > lti){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										ti++;
+										break;
+									case DOUBLE:	mem = btd + td;
+										if(mem > ltd){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										td++;
+										break;
+									}
+									gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
+									operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 									availNum++;
 								} else {
 									cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';

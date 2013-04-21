@@ -3,30 +3,30 @@
 using namespace std;
 
 Variable::Variable(){
-	var_type = var_dim = -1;
+	var_type = var_dim = dir = -1;
 };
 
-Variable::Variable(int t, int d){
+Variable::Variable(int t, int d, int dr){
 	var_type = t;
 	var_dim = d;
+	dir = dr;
 };
 
 Attribute::Attribute(){
-	att_vis = att_type = att_mtd = -1;
+	att_vis = att_type = att_mtd = dir = -1;
 };
 
-Attribute::Attribute(int vis, int type, int a_type, int dir){
+Attribute::Attribute(int vis, int type, int a_type, int dr){
 	att_vis = vis;
 	att_type = type;
 	att_mtd = a_type;
-	mtd_q = dir;
+	dir = dr;
 };
 
 Attribute::Attribute(int vis, int type, int a_type){
 	att_vis = vis;
 	att_type = type;
 	att_mtd = a_type;
-	mtd_q = -1;
 };
 
 ClassStruct::ClassStruct(){
@@ -38,7 +38,7 @@ ClassStruct::ClassStruct(string e, CTABLE proc){
 	attributes = proc;
 };
 
-Cuadruplo::Cuadruplo(int a, string o1, string o2, string r){
+Cuadruplo::Cuadruplo(int a, int o1, int o2, int r){
 	operador = a;
 	op1 = o1;
 	op2 = o2;
@@ -47,20 +47,21 @@ Cuadruplo::Cuadruplo(int a, string o1, string o2, string r){
 
 CVariable::CVariable(){
 	name = "";
-	var_type = var_dim = -1;
+	var_type = var_dim = dir =-1;
 };
 
-CVariable::CVariable(string n, int type, int dim){
+CVariable::CVariable(string n, int type, int dim, int dr){
 	name = n;
 	var_type = type;
 	var_dim = dim;
+	dir = dr;
 };
 
 Constantes::Constantes(){
-	type = memoria = -1;
+	type = dir = -1;
 };
 
 Constantes::Constantes(int t, int m){
 	type = t;
-	memoria = m;
+	dir = m;
 };
