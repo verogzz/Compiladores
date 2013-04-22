@@ -108,7 +108,6 @@ PRODUCTIONS
 					className = "";
 					err = false;
 					cts.insert(CTS::value_type("1", Constantes(INT, bci + ci)));
-					gen.push_back(Cuadruplo(MAI, gen.size(), -1 , -1));
 					ci++;.)
 					Class Main.
 	
@@ -169,7 +168,7 @@ PRODUCTIONS
 							cout << "TYPE MISMATCH! :" << o1.name << '\t' << operandos.top().name << '\n';
 							operandos.pop();
 							err = TRUE;
-						}.).
+						} 
 	
 	Atributo 	(.	name = "";
 					vis = type = -1;.)
@@ -234,7 +233,7 @@ PRODUCTIONS
 				saltos.pop();
 				gen.push_back(Cuadruplo(GTO, ret, -1 , -1));
 				gen[falso].res = gen.size();
-				.).
+				 
 				
 	Class 	(.string ext = "";
 			className = "";
@@ -310,10 +309,10 @@ PRODUCTIONS
 					else if (gen[ps].operador == GTF)
 						gen[ps].res = gen.size();
 					gts--;
-					}.).
+					} 
 	
-	Constructor (.name = ""; vis = type = -1;
-				li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	Constructor (.name = "";
+				vis = type = -1;.)
 				= 	
 				idC (.name = conv(t->val);
 					if(dirProc.find(name) == dirProc.end()){
@@ -363,7 +362,7 @@ PRODUCTIONS
 								break;
 					}
 					cts.insert(CTS::value_type(c, Constantes(ctype, mem)));
-				}.).
+				} 
 	
 	CTES (. string temp = ""; .)
 		= 	idV (.temp = conv(t->val);
@@ -386,7 +385,7 @@ PRODUCTIONS
 				o2.var_dim = 0;
 				o2.var_type = ctype;
 				o2.dir = cts[temp].dir;
-				.).
+				 
 	
 	Decl (. string nameL; dim = 0;.) 
 			= (New | Tipo idV (.nameL = conv(t->val); int mem = 0;.)
@@ -628,7 +627,7 @@ PRODUCTIONS
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 					err = TRUE;
 				}
-				}.).
+				} 
 	
 	ExpOY 	= (.int mem = 0;.)
 				Expresion 
@@ -683,7 +682,7 @@ PRODUCTIONS
 					cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 					err = TRUE;
 				}
-			}.).
+			} 
 	
 	Expresion 	= (.int mem = 0;.)
 				Exp 
@@ -746,7 +745,7 @@ PRODUCTIONS
 						cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 						err = TRUE;
 					}
-				}.).
+				} 
 	
 	Factor 	=  ['~'|'-'] ( 
 				'(' (.oper.push(99);.) ExpOY 
@@ -816,13 +815,10 @@ PRODUCTIONS
 					cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
 					err = TRUE;
 				}.)
-				'(' ')' 
-				'{' (.gen[0].op1 = gen.size();
-					li = ld = lb = ls = ti = td = tb = ts = 0;.)
-				{Decl} {Estatuto} '}'
+				'(' ')' '{' {Decl} {Estatuto} '}'
 				(.if(dirGral.find("main") == dirGral.end()){
 					dirGral.insert(TABLE::value_type("main", ClassStruct("", dirProc)));
-				}.).
+				} 
 	
 	Metodo = 	idM (.string name = conv(t->val);
 					if(dirProc.find(name) == dirProc.end()){
@@ -843,7 +839,7 @@ PRODUCTIONS
 							}
 							t_params.clear();.)
 				')'
-				(.gen.push_back(Cuadruplo(GSU, dirProc[name].dir, -1, -1));.).
+				(.gen.push_back(Cuadruplo(GSU, dirProc[name].dir, -1, -1)); 
 	
 	MetodoR 	(.vis = type = -1;
 				li = ld = lb = ls = ti = td = tb = ts = 0;.)
@@ -858,7 +854,7 @@ PRODUCTIONS
 				'(' [Param] ')' '{' {Decl} 
 				{Estatuto} Return 
 				'}' (. 	name = "";
-						gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
+						gen.push_back(Cuadruplo(RET, -1, -1, -1)); 
 						
 	MetodoV 	(.vis = type = -1;
 				li = ld = lb = ls = ti = td = tb = ts = 0;.)
@@ -872,7 +868,7 @@ PRODUCTIONS
 						.) 
 				'(' [Param] ')' '{' {Decl} 
 				{Estatuto} '}' (. name = "";
-								gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
+								gen.push_back(Cuadruplo(RET, -1, -1, -1)); 
 						
 	New (. string nameL; .)  
 		= idO idV (.	nameL = conv(t->val);
@@ -1019,14 +1015,14 @@ PRODUCTIONS
 									cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
 									err = TRUE;
 								}
-							}.).
+							} 
 	
 	Tipo = 	tInt (. type = INT; .)| 
 			tDou (. type = DOUBLE; .)| 
 			tStr (. type = STRING; .)| 
-			tBoo(. type = BOOLEAN; .).
+			tBoo(. type = BOOLEAN;  
 	
 	Vis = 	tPub (. vis = PUBLIC; .)| 
 			tPri (. vis = PRIVATE; .)| 
-			tPro(. vis = PROTECT; .).
+			tPro(. vis = PROTECT;  
 END Solstice.	

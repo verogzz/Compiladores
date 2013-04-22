@@ -89,6 +89,7 @@
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Scanner.h" />
     <ClInclude Include="Tabla.h" />
+    <ClInclude Include="VirtualM.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cubo.cpp" />
@@ -97,6 +98,7 @@
     <ClCompile Include="Scanner.cpp" />
     <ClCompile Include="Solstice.cpp" />
     <ClCompile Include="Tabla.cpp" />
+    <ClCompile Include="VirtualM.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
