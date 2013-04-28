@@ -529,8 +529,8 @@ PRODUCTIONS
 					}.) 
 			')' (.CVariable strRes = operandos.top();
 				operandos.pop();
-				if(strRes.var_type != STRING && strRes.var_dim < 2){
-					cout << "EXPRESSION MUST BE STRING TYPE!\n";
+				if(strRes.var_dim > 1){
+					cout << "EXPRESSION CANNOT BE AN ARRAY!\n";
 				}else{
 					gen.push_back(Cuadruplo(WRI, strRes.dir, -1, -1));
 				}.)';'.
@@ -798,7 +798,7 @@ PRODUCTIONS
 							err = TRUE;
 						}.)
 			',' Tipo 	(.if(o1.var_type == type){
-							gen.push_back(Cuadruplo(REA, o1.dir, -1, -1));
+							gen.push_back(Cuadruplo(REA, o1.dir, type, -1));
 						} else {
 							cout << "TYPE MISMATCH! :" << o1.name << '\n';
 							err = TRUE;

@@ -10,6 +10,8 @@
 #include <vector>
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
+#include <exception>
 #include "Tabla.h"
 #include "Memoria.h"
 
@@ -19,7 +21,7 @@ class VirtualM {
 public:
 	Cuadruplo current;
 	TABLE dirClasses;
-	CTS dirCtes;
+	CTS dirCtes;	
 	vector<Cuadruplo> prog;
 	Memoria m_global;
 	Memoria m_local;
@@ -56,6 +58,10 @@ public:
 	void return_value();
 	void parameter();
 	void limits_array();
+private:
+	string strClean(string s);
+	string ftoa(float f);
+	string btoa(bool b);
 };
 
 #endif

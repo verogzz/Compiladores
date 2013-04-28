@@ -5,6 +5,7 @@ VirtualM::VirtualM(){}
 VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 	dirClasses = dirGral;
 	prog = p;
+
 	for(CTS::iterator it = ctes.begin(); it != ctes.end(); it++){
 		switch (it->second.type) {
 		case INT:	m_constante.m_i[it->second.dir] = atoi(&(it->first)[0]); 
@@ -13,7 +14,7 @@ VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 						break;
 		case STRING:	m_constante.m_s[it->second.dir] = it->first;
 						break;
-		case BOOLEAN:	if(it->first.compare("true")){
+		case BOOLEAN:	if(it->first.compare("true") == 0){
 							m_constante.m_b[it->second.dir] = true;
 						}else{
 							m_constante.m_b[it->second.dir] = false;
@@ -95,7 +96,6 @@ int VirtualM::mvalue_type(int dir, int mt){
 		break;
 	}
 }
-
 
 void VirtualM::run(){
 	for(unsigned int i = prog.at(0).op1; i < prog.size(); i++){
@@ -273,7 +273,6 @@ void VirtualM::sum(){
 		cout << "TYPE MISMATCH!!!\n";
 		break;
 	}
-	cout<< o1 + o2 << '\n';
 }
 
 void VirtualM::substration(){
@@ -416,7 +415,6 @@ void VirtualM::substration(){
 		cout << "TYPE MISMATCH!!!\n";
 		break;
 	}
-	cout<< o1 - o2 << '\n';
 }
 
 void VirtualM::multiplication(){
@@ -559,7 +557,6 @@ void VirtualM::multiplication(){
 		cout << "TYPE MISMATCH!!!\n";
 		break;
 	}
-	cout<< o1 * o2 << '\n';
 }
 
 void VirtualM::division(){
@@ -689,20 +686,23 @@ void VirtualM::division(){
 		cout << "MEMORY OUT OF BOUNDS!!!\n";
 		break;
 	}
-
-	switch(mvalue_type(current.res, TEMPORAL)){
-	case INT: m_temporal.m_i[current.res] = o1 / o2;
-		break;
-	case DOUBLE: m_temporal.m_d[current.res] = o1 / o2;
-		break;
-	case STRING: 
-	case BOOLEAN: 
-	case ERROR:
-	default:
-		cout << "TYPE MISMATCH!!!\n";
-		break;
+	if(o2 != 0.0){
+		switch(mvalue_type(current.res, TEMPORAL)){
+		case INT: m_temporal.m_i[current.res] = o1 / o2;
+			break;
+		case DOUBLE: m_temporal.m_d[current.res] = o1 / o2;
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+	}else{
+		cout << "DIVISION BY ZERO!!!\n";
+		exit(0);
 	}
-	cout<< o1 / o2 << '\n';
 }
 
 void VirtualM::module(){
@@ -845,31 +845,1625 @@ void VirtualM::module(){
 		cout << "TYPE MISMATCH!!!\n";
 		break;
 	}
-	cout<< (int)o1 % (int)o2 << '\n';
 }
 
-void VirtualM::and(){}
-void VirtualM::or(){}
-void VirtualM::less_than(){}
-void VirtualM::greater_than(){}
-void VirtualM::equal_equal(){}
-void VirtualM::diference(){}
-void VirtualM::greater_equal(){}
-void VirtualM::less_equal(){}
-void VirtualM::append(){}
-void VirtualM::asign(){
-	//cout << current.op1 << '\n';
-	//cout << current.op2 << '\n';
-	//cout << current.res << '\n';
+void VirtualM::and(){
+	bool o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case BOOLEAN: o1 = m_global.m_b[current.op1];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case BOOLEAN: o1 = m_local.m_b[current.op1];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case BOOLEAN: o1 =m_temporal.m_b[current.op1];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case BOOLEAN: o1 = m_constante.m_b[current.op1];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case BOOLEAN: o2 = m_global.m_b[current.op2];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case BOOLEAN: o2 = m_local.m_b[current.op2];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case BOOLEAN: o2 = m_temporal.m_b[current.op2];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case BOOLEAN: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 && o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
 }
+
+void VirtualM::or(){
+	bool o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case BOOLEAN: o1 = m_global.m_b[current.op1];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case BOOLEAN: o1 = m_local.m_b[current.op1];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case BOOLEAN: o1 =m_temporal.m_b[current.op1];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case BOOLEAN: o1 = m_constante.m_b[current.op1];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case BOOLEAN: o2 = m_global.m_b[current.op2];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case BOOLEAN: o2 = m_local.m_b[current.op2];
+			break;
+		case DOUBLE: 
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case BOOLEAN: o2 = m_temporal.m_b[current.op2];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case BOOLEAN: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE:
+		case STRING: 
+		case INT: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 || o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::less_than(){
+	double o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 =m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 < o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::greater_than(){
+	double o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 =m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 > o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::equal_equal(){
+	double o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 =m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 == o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::diference(){
+	double o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 =m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 != o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::greater_equal(){
+	double o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 =m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 >= o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::less_equal(){
+	double o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 =m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: 
+		case BOOLEAN: 
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case BOOLEAN: m_temporal.m_i[current.res] = o1 <= o2;
+		break;
+	case DOUBLE:
+	case STRING: 
+	case INT: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}
+}
+
+void VirtualM::append(){
+	string o1, o2;	
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_global.m_d[current.op1];
+			break;
+		case STRING: o1 = m_global.m_s[current.op1];
+			break;
+		case BOOLEAN: o1 = m_global.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_local.m_d[current.op1];
+			break;
+		case STRING: o1 = m_local.m_s[current.op1];
+			break;
+		case BOOLEAN: o1 = m_local.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 = m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: o1 = m_temporal.m_s[current.op1];
+			break;
+		case BOOLEAN: o1 = m_temporal.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: o1 = m_constante.m_s[current.op1];
+			break;
+		case BOOLEAN: o1 = m_constante.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.op2)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op2, GLOBAL)){
+		case INT: o2 = m_global.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_global.m_d[current.op2];
+			break;
+		case STRING: o2 = m_global.m_s[current.op2];
+			break;
+		case BOOLEAN: o2 = m_global.m_b[current.op2];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op2, LOCAL)){
+		case INT: o2 = m_local.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: o2 = m_local.m_s[current.op2];
+			break;
+		case BOOLEAN: o2 = m_local.m_b[current.op2];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: o2 = m_temporal.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_temporal.m_d[current.op2];
+			break;
+		case STRING: o2 = m_temporal.m_s[current.op2];
+			break;
+		case BOOLEAN: o2 = m_temporal.m_b[current.op2];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: o2 = m_constante.m_i[current.op2];
+			break;
+		case DOUBLE: o2 = m_constante.m_d[current.op2];
+			break;
+		case STRING: o2 = m_constante.m_s[current.op2];
+			break;
+		case BOOLEAN: o2 = m_constante.m_b[current.op2];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch(mvalue_type(current.res, TEMPORAL)){
+	case STRING: m_temporal.m_s[current.res] = o1 + o2;
+		break;
+	case DOUBLE:
+	case INT: 
+	case BOOLEAN: 
+	case ERROR:
+	default:
+		cout << "TYPE MISMATCH!!!\n";
+		break;
+	}}
+
+void VirtualM::asign(){
+	string os1;	
+	double od1;	
+	bool ob1;
+
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: od1 = m_global.m_i[current.op1];
+			break;
+		case DOUBLE: od1 = m_global.m_d[current.op1];
+			break;
+		case STRING: os1 = m_global.m_s[current.op1];
+			break;
+		case BOOLEAN: ob1 = m_global.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: od1 = m_local.m_i[current.op1];
+			break;
+		case DOUBLE: od1 = m_local.m_d[current.op1];
+			break;
+		case STRING: os1 = m_local.m_s[current.op1];
+			break;
+		case BOOLEAN: ob1 = m_local.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: od1 = m_temporal.m_i[current.op1];
+			break;
+		case DOUBLE: od1 = m_temporal.m_d[current.op1];
+			break;
+		case STRING: os1 = m_temporal.m_s[current.op1];
+			break;
+		case BOOLEAN: ob1 = m_temporal.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: od1 = m_constante.m_i[current.op1];
+			break;
+		case DOUBLE: od1 = m_constante.m_d[current.op1];
+			break;
+		case STRING: os1 = m_constante.m_s[current.op1];
+			break;
+		case BOOLEAN: ob1 = m_constante.m_b[current.op1];
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+
+	switch (memory_type(current.res)){
+	case GLOBAL: 
+		switch(mvalue_type(current.res, GLOBAL)){
+		case INT: m_global.m_i[current.res] = od1;
+			break;
+		case DOUBLE: m_global.m_d[current.res] = od1;
+			break;
+		case STRING: m_global.m_s[current.res] = os1;
+			break;
+		case BOOLEAN: m_global.m_b[current.res] = ob1;
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.res, LOCAL)){
+		case INT: m_local.m_i[current.res] = od1;
+			break;
+		case DOUBLE: m_local.m_d[current.op2] = od1;
+			break;
+		case STRING: m_local.m_s[current.op2] = os1;
+			break;
+		case BOOLEAN: m_local.m_b[current.op2] = ob1;
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op2, TEMPORAL)){
+		case INT: m_temporal.m_i[current.res] = od1;
+			break;
+		case DOUBLE: m_temporal.m_d[current.res] = od1;
+			break;
+		case STRING: m_temporal.m_s[current.res] = os1;
+			break;
+		case BOOLEAN: m_temporal.m_b[current.res] = ob1;
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op2, CONSTANT)){
+		case INT: m_constante.m_i[current.res] = od1;
+			break;
+		case DOUBLE: m_constante.m_d[current.op2] = od1;
+			break;
+		case STRING: m_constante.m_s[current.op2] = os1;
+			break;
+		case BOOLEAN: m_constante.m_b[current.op2] = ob1;
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+}
+
 void VirtualM::go_to_true(){}
+
 void VirtualM::go_to_false(){}
+
 void VirtualM::go_to(){}
-void VirtualM::read(){}
-void VirtualM::write(){}
+
+void VirtualM::read(){
+	int m1;
+	double m2;
+	bool m3;
+	try{
+		switch (memory_type(current.op1)){
+		case GLOBAL: 
+			switch(mvalue_type(current.op1, GLOBAL)){
+			case INT: cin >> m1;
+				m_global.m_i[current.op1] = m1;
+				break;
+			case DOUBLE: cin >> m2;
+				m_global.m_d[current.op1] = m2;;
+				break;
+			case STRING: cin >> m_global.m_s[current.op1];
+				break;
+			case BOOLEAN: cin >> m3;
+				if(m3){
+					m_global.m_d[current.op1] = true;
+				}else{
+					m_global.m_d[current.op1] = false;
+				}
+				break;
+			case ERROR:
+			default:
+				cout << "TYPE MISMATCH!!!\n";
+				break;
+			}
+			break;
+		case LOCAL: 
+			switch(mvalue_type(current.op1, LOCAL)){
+			case INT: cin >> m1;
+				m_local.m_i[current.op1] = m1;
+				break;
+			case DOUBLE: cin >> m2;
+				m_local.m_d[current.op1] = m2;
+				break;
+			case STRING: cin >> m_local.m_s[current.op1];
+				break;
+			case BOOLEAN: cin >> m3;
+				if(m3){
+					m_local.m_d[current.op1] = true;
+				}else{
+					m_local.m_d[current.op1] = false;
+				}
+				break;
+			case ERROR:
+			default:
+				cout << "TYPE MISMATCH!!!\n";
+				break;
+			}
+			break;
+		case TEMPORAL: 
+			switch(mvalue_type(current.op1, TEMPORAL)){
+			case INT: cin >> m1;
+				m_temporal.m_i[current.op1] = m1;
+				break;
+			case DOUBLE: cin >> m2;
+				m_temporal.m_d[current.op1] = m2;
+				break;
+			case STRING: cin >> m_temporal.m_s[current.op1];
+				break;
+			case BOOLEAN: cin >> m3;
+				if(m3){
+					m_temporal.m_d[current.op1] = true;
+				}else{
+					m_temporal.m_d[current.op1] = false;
+				}
+				break;
+			case ERROR:
+			default:
+				cout << "TYPE MISMATCH!!!\n";
+				break;
+			}
+			break;
+		case CONSTANT: 
+		case ERROR:
+		default:
+			cout << "MEMORY OUT OF BOUNDS!!!\n";
+			break;
+		}
+	}catch (exception& e){
+		cout<< "TYPE MISMATCH!!!";
+		exit(0);
+	}
+}
+
+void VirtualM::write(){
+	string o1 = "";
+	switch (memory_type(current.op1)){
+	case GLOBAL: 
+		switch(mvalue_type(current.op1, GLOBAL)){
+		case INT: o1 = ftoa(m_global.m_i[current.op1]);
+			break;
+		case DOUBLE: o1 = ftoa(m_global.m_d[current.op1]);
+			break;
+		case STRING: o1 = strClean(m_global.m_s[current.op1]);
+			break;
+		case BOOLEAN: o1 = btoa(m_global.m_b[current.op1]);
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case LOCAL: 
+		switch(mvalue_type(current.op1, LOCAL)){
+		case INT: o1 = ftoa(m_local.m_i[current.op1]);
+			break;
+		case DOUBLE: o1 = ftoa(m_local.m_d[current.op1]);
+			break;
+		case STRING: o1 = strClean(m_local.m_s[current.op1]);
+			break;
+		case BOOLEAN: o1 = btoa(m_local.m_b[current.op1]);
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case TEMPORAL: 
+		switch(mvalue_type(current.op1, TEMPORAL)){
+		case INT: o1 = ftoa(m_temporal.m_i[current.op1]);
+			break;
+		case DOUBLE: o1 = ftoa(m_temporal.m_d[current.op1]);
+			break;
+		case STRING: o1 = strClean(m_temporal.m_s[current.op1]);
+			break;
+		case BOOLEAN: o1 = btoa(m_temporal.m_b[current.op1]);
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case CONSTANT: 
+		switch(mvalue_type(current.op1, CONSTANT)){
+		case INT: o1 = ftoa(m_constante.m_i[current.op1]);
+			break;
+		case DOUBLE: o1 = ftoa(m_constante.m_d[current.op1]);
+			break;
+		case STRING: o1 = strClean(m_constante.m_s[current.op1]);
+			break;
+		case BOOLEAN: o1 = btoa(m_constante.m_b[current.op1]);
+			break;
+		case ERROR:
+		default:
+			cout << "TYPE MISMATCH!!!\n";
+			break;
+		}
+		break;
+	case ERROR:
+	default:
+		cout << "MEMORY OUT OF BOUNDS!!!\n";
+		break;
+	}
+	cout << o1 << '\n';
+}
+
 void VirtualM::era(){}
+
 void VirtualM::go_sub(){}
+
 void VirtualM::end_module(){}
+
 void VirtualM::return_value(){}
+
 void VirtualM::parameter(){}
-void VirtualM::limits_array(){}
+
+void VirtualM::limits_array(){
+	int sub = current.op1;
+	int li = current.op2;
+	int ls = current.res;
+	if (!(sub > li && sub < ls)){
+		cout << "ARRAY OUT OF BOUNDS!!!\n";
+		exit(0);
+	}
+}
+
+string VirtualM::strClean(string s){
+	return s.substr(1, s.length()-2);
+}
+
+string VirtualM::ftoa(float f){
+	std::ostringstream buff;
+	buff << f;
+	return buff.str();
+}
+
+string VirtualM::btoa(bool b){
+	if(b)
+		return "true";
+	else
+		return "false";
+}

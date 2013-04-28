@@ -284,7 +284,7 @@ void Parser::Asig2() {
 		gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1 , o1.dir));
 		operandos.pop();
 		} else {
-		cout << "TYPE MISMATCH!1 :" << o1.name << '\t' << operandos.top().name << '\n';
+		cout << "TYPE MISMATCH! :" << o1.name << '\t' << operandos.top().name << '\n';
 		operandos.pop();
 		err = TRUE;
 		}
@@ -983,8 +983,8 @@ void Parser::Esc() {
 		Expect(39 /* ")" */);
 		CVariable strRes = operandos.top();
 		operandos.pop();
-		if(strRes.var_type != STRING && strRes.var_dim < 2){
-		cout << "EXPRESSION MUST BE STRING TYPE!\n";
+		if(strRes.var_dim > 1){
+		cout << "EXPRESSION CANNOT BE AN ARRAY!\n";
 		}else{
 		gen.push_back(Cuadruplo(WRI, strRes.dir, -1, -1));
 		}
@@ -1048,7 +1048,7 @@ void Parser::Lec() {
 		Expect(42 /* "," */);
 		Tipo();
 		if(o1.var_type == type){
-		gen.push_back(Cuadruplo(REA, o1.dir, -1, -1));
+		gen.push_back(Cuadruplo(REA, o1.dir, type, -1));
 		} else {
 		cout << "TYPE MISMATCH! :" << o1.name << '\n';
 		err = TRUE;

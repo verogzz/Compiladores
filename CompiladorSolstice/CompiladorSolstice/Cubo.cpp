@@ -1,7 +1,7 @@
 #include<iostream>
 #include "Cubo.h"
 
-Cubo::Cubo(void) {
+Cubo::Cubo() {
 	/* Cubo[OP1][OP2][OPR] = TIPO
 	
 	OP#
@@ -332,5 +332,4 @@ Cubo::Cubo(void) {
 	cubo[3][2][14] = -1; // bool = string
 	cubo[3][3][14] = 3; // bool = bool
 
-	Cubo::cubo[1][1][1];
 }

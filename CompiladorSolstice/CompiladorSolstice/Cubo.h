@@ -5,8 +5,8 @@
 
 class Cubo {
 public:
-	Cubo(void);
-	int cubo[4][4][14];
+	Cubo();
+	int cubo[4][4][15];
 };
 
 #endif

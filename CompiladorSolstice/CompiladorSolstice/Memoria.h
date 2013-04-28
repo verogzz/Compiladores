@@ -39,7 +39,7 @@ using namespace std;
 #define lci 20999
 #define lcd 21999
 #define lcs 22999
-#define lcb 23999
+#define lcb 23002
 
 class Memoria{
 public:
