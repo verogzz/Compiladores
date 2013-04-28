@@ -27,6 +27,8 @@ public:
 	Memoria m_local;
 	Memoria m_temporal;
 	Memoria m_constante;
+	unsigned int cIt;
+	stack<int> slines;
 	VirtualM();
 	VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p);
 	int memory_type(int dir);

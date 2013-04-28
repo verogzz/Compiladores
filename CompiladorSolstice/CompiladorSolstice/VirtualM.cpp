@@ -98,8 +98,8 @@ int VirtualM::mvalue_type(int dir, int mt){
 }
 
 void VirtualM::run(){
-	for(unsigned int i = prog.at(0).op1; i < prog.size(); i++){
-		current = prog.at(i);
+	for(cIt = prog.at(0).op1; cIt < prog.size(); cIt++){
+		current = prog.at(cIt);
 		switch (current.operador) {
 		case SUM : sum(); break;
 		case SUB : substration(); break;
@@ -2263,11 +2263,17 @@ void VirtualM::asign(){
 	}
 }
 
-void VirtualM::go_to_true(){}
+void VirtualM::go_to_true(){
+	cIt = current.res;
+}
 
-void VirtualM::go_to_false(){}
+void VirtualM::go_to_false(){
+	cIt = current.res;
+}
 
-void VirtualM::go_to(){}
+void VirtualM::go_to(){
+	cIt = current.res;
+}
 
 void VirtualM::read(){
 	int m1;
@@ -2433,9 +2439,20 @@ void VirtualM::write(){
 
 void VirtualM::era(){}
 
-void VirtualM::go_sub(){}
+void VirtualM::go_sub(){
+	slines.push(cIt);
+	cIt = current.op1;
+}
 
-void VirtualM::end_module(){}
+void VirtualM::end_module(){
+	if(slines.size() > 0){
+		cIt = slines.top();
+		slines.pop();
+	}else{
+		cout << "Memory Error!\n";
+		exit(0);
+	}
+}
 
 void VirtualM::return_value(){}
 

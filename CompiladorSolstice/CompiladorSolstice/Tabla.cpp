@@ -52,7 +52,6 @@ Cuadruplo::Cuadruplo(){
 	res = -1;
 };
 
-
 CVariable::CVariable(){
 	name = "";
 	var_type = var_dim = dir =-1;
