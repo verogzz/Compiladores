@@ -829,7 +829,7 @@ PRODUCTIONS
 						cout << "UNDECLARED METHOD: " << name << '\n';
 						err = TRUE;
 					}
-					gen.push_back(Cuadruplo(ERA, -5, -1, -1));.)
+					gen.push_back(Cuadruplo(ERA, dirProc[name].dirMem, -1, -1));.)
 				'(' [Lista] (.if(t_params.size() == dirProc[name].params.size()){
 								for(int i = 0; i < dirProc[name].params.size(); i++){
 									if (t_params.at(i).var_type != dirProc[name].params.at(i)){
@@ -848,8 +848,39 @@ PRODUCTIONS
 	MetodoR 	(.vis = type = -1;
 				li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	Tipo idM (.	name = conv(t->val);
+							int mem = 0;
+							switch (type){
+							case INT:	mem = bgi + gi;
+										if(mem > lgi){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										gi++;
+										break;
+							case DOUBLE:	mem = bgd + gd;
+										if(mem > lgd){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										gd++;
+										break;
+							case STRING:	mem = bgs + gs;
+										if(mem > lgs){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										gs++;
+										break;
+							case BOOLEAN:	mem = bgb + gb;
+										if(mem > lgb){
+											cout << "OUT OF MEMORY!\n";
+											err = true;
+										}
+										gb++;
+										break;
+							}
 							if(dirProc.find(name) == dirProc.end()){
-								dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size())));
+								dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size(), mem)));
 							} else {
 								cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
 								err = TRUE;
@@ -931,7 +962,7 @@ PRODUCTIONS
 	Return = 	tRet ExpOY (.if(operandos.size() != 0){
 								if(dirProc[name].att_type == operandos.top().var_type && 
 									operandos.top().var_dim < 2){
-									gen.push_back(Cuadruplo(MR, operandos.top().dir, -1, -1));
+									gen.push_back(Cuadruplo(MR, operandos.top().dir, -1, dirProc[name].dirMem));
 									operandos.pop();
 								}else{
 									cout << "RETURN VALUE IS NOT THE EXPECTED TYPE!\n";

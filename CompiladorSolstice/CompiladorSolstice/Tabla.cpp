@@ -23,6 +23,15 @@ Attribute::Attribute(int vis, int type, int a_type, int dr){
 	dir = dr;
 };
 
+Attribute::Attribute(int vis, int type, int a_type, int dr, int dirM){
+	att_vis = vis;
+	att_type = type;
+	att_mtd = a_type;
+	dir = dr;
+	dirMem = dirM;
+};
+
+
 Attribute::Attribute(int vis, int type, int a_type){
 	att_vis = vis;
 	att_type = type;

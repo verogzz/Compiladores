@@ -77,10 +77,12 @@ public:
 	int att_type;
 	int att_mtd;
 	int dir;
+	int dirMem;
 	vector<int> params;
 	VMAP vars;
 	Attribute();
 	Attribute(int vis, int type, int a_type, int dr);
+	Attribute(int vis, int type, int a_type, int dr, int dirM);
 	Attribute(int vis, int type, int a_type);
 };
 typedef std::map<string, Attribute> CTABLE;

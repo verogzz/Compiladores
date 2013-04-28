@@ -412,8 +412,39 @@ void Parser::MetodoR() {
 		Tipo();
 		Expect(_idM);
 		name = conv(t->val);
+		int mem = 0;
+		switch (type){
+		case INT:	mem = bgi + gi;
+		if(mem > lgi){
+		cout << "OUT OF MEMORY!\n";
+		err = true;
+		}
+		gi++;
+		break;
+		case DOUBLE:	mem = bgd + gd;
+		if(mem > lgd){
+		cout << "OUT OF MEMORY!\n";
+		err = true;
+		}
+		gd++;
+		break;
+		case STRING:	mem = bgs + gs;
+		if(mem > lgs){
+		cout << "OUT OF MEMORY!\n";
+		err = true;
+		}
+		gs++;
+		break;
+		case BOOLEAN:	mem = bgb + gb;
+		if(mem > lgb){
+		cout << "OUT OF MEMORY!\n";
+		err = true;
+		}
+		gb++;
+		break;
+		}
 		if(dirProc.find(name) == dirProc.end()){
-		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size())));
+		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size(), mem)));
 		} else {
 		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
 		err = TRUE;

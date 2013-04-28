@@ -39,7 +39,7 @@ using namespace std;
 #define lci 20999
 #define lcd 21999
 #define lcs 22999
-#define lcb 23002
+#define lcb 23001
 
 class Memoria{
 public:
@@ -48,6 +48,7 @@ public:
 	map<int, bool> m_b;
 	map<int, double> m_d;
 	Memoria();
+	~Memoria();
 };
 
 #endif

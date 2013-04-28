@@ -61,9 +61,14 @@ public:
 	void parameter();
 	void limits_array();
 private:
+	stack<Memoria> sTemp;
+	stack<Memoria> sLocal;
+	Memoria tTemp;
+	Memoria tLocal;
 	string strClean(string s);
 	string ftoa(float f);
 	string btoa(bool b);
+	void error(int e);
 };
 
 #endif

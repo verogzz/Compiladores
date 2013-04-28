@@ -260,7 +260,7 @@ void Parser::Parse() {
 
 Parser::Parser(Scanner *scanner) {
 -->constants
-	ParserInitCaller<Parser>::CallInit(this);
+	//ParserInitCaller<Parser>::CallInit(this);
 	dummyToken = NULL;
 	t = la = NULL;
 	minErrDist = 2;

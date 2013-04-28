@@ -11,30 +11,19 @@ using namespace std;
 
 int main (int argc, char *argv[]) {
 	if (argc == 2) {
-		wchar_t *fileName = coco_string_create(argv[1]);
-		
+		string a = argv[1] + string("2.sol");
+		wchar_t *fileName = coco_string_create(&a[0]);
 		Scanner *scanner = new Scanner(fileName);	
 		Parser *parser = new Parser(scanner);
 		parser->Parse();
-
-		VirtualM machine = VirtualM(parser->dirGral, parser->cts, parser->gen);
-		
-		delete parser;
-		delete scanner;
-		
-		machine.run();
-		
-		//for(int i = 0; i < parser->gen.size(); i++){
-			//cout << i << '\t' << parser->gen.at(i).operador << '\t' << parser->gen.at(i).op1 << '\t' << parser->gen.at(i).op2 << '\t' << parser->gen.at(i).res << '\n';
-		//}
-		
-		//for(SIT it = parser->dir.begin(); it != parser->dir.end(); it++){
-			//cout<< it->first << '\t' << it->second.att_vis << '\t' << it->second.att_type << '\t' << it->second.att_mtd << '\n';
-			//for(VMAP::iterator it2 = it->second.vars.begin(); it2 != it->second.vars.end(); it2++)
-				//cout<< '\t' <<it2->first << '\t' << it2->second.var_type << '\t' << it2->second.var_dim << '\n';
-		//}
-			
-
+		if(!parser->err){
+			VirtualM machine = VirtualM(parser->dirGral, parser->cts, parser->gen);
+			delete parser;
+			delete scanner;
+			machine.run();
+		}else{
+			exit(EXIT_FAILURE);
+		}
 	} else {
 		printf("No se especifico el archivo fuente o ejecuto mas de uno.\n");
 	}	
