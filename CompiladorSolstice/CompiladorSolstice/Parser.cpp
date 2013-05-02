@@ -68,7 +68,7 @@ void Parser::Solstice() {
 		availNum = 0;
 		type = ctype = vis = dim = -1;
 		name = "";
-		gi = gd = gb = gs = li = ld = lb = ls = ti = td = tb = ts = ci = cd = cb = cs = 0;
+		gi = gd = gb = gs = li = ld = lb = ls = ti = td = tb = ts = ci = cd = cb = cs = tp = mo = 0;
 		className = "";
 		err = false;
 		cts.insert(CTS::value_type("1", Constantes(INT, bci + ci)));
@@ -154,7 +154,8 @@ void Parser::Arr() {
 
 void Parser::Arr2() {
 		Expect(34 /* "[" */);
-		if(o1.var_dim < 2){
+		int range = o1.var_dim;
+		if(range < 1){
 		cout << "VARIABLE IS NOT AN ARRAY!\n";	
 		err = true;
 		}
@@ -163,14 +164,14 @@ void Parser::Arr2() {
 		o2 = operandos.top();
 		operandos.pop();
 		if(o2.var_type == INT){
-		gen.push_back(Cuadruplo(VER, o2.dir, -1, o1.var_dim));
-		int mem = bti + ti;
-		if(mem > lti){
+		gen.push_back(Cuadruplo(VER, o2.dir, -1, range));
+		int mem = btp + tp;
+		if(mem > ltp){
 		cout << "OUT OF MEMORY!\n";
 		err = true;
 		}
-		ti++;
-		gen.push_back(Cuadruplo(SUM, o2.dir, o1.dir, mem));
+		tp++;
+		gen.push_back(Cuadruplo(ACC, o2.dir, o1.dir, mem));
 		o1.var_dim = 0;
 		}else{
 		cout << "EXPRESSION MUST BE INT TYPE!\n";	
@@ -840,28 +841,44 @@ void Parser::Decl() {
 			cout << "OUT OF MEMORY!\n";
 			err = true;
 			}
+			if(dim == 0){
 			li++;
+			}else{
+			li += dim;
+			}
 			break;
 			case DOUBLE:	mem = bld + ld;
 			if(mem > lld){
 			cout << "OUT OF MEMORY!\n";
 			err = true;
 			}
+			if(dim == 0){
 			ld++;
+			}else{
+			ld += dim;
+			}
 			break;
 			case STRING:	mem = bls + ls;
 			if(mem > lls){
 			cout << "OUT OF MEMORY!\n";
 			err = true;
 			}
+			if(dim == 0){
 			ls++;
+			}else{
+			ls += dim;
+			}
 			break;
 			case BOOLEAN:	mem = blb + lb;
 			if(mem > llb){
 			cout << "OUT OF MEMORY!\n";
 			err = true;
 			}
+			if(dim == 0){
 			lb++;
+			}else{
+			lb += dim;
+			}
 			break;
 			}
 			dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim, mem)));
@@ -894,28 +911,44 @@ void Parser::Decl() {
 				cout << "OUT OF MEMORY!\n";
 				err = true;
 				}
+				if(dim == 0){
 				li++;
+				}else{
+				li += dim;
+				}
 				break;
 				case DOUBLE:	mem = bld + ld;
 				if(mem > lld){
 				cout << "OUT OF MEMORY!\n";
 				err = true;
 				}
+				if(dim == 0){
 				ld++;
+				}else{
+				ld += dim;
+				}
 				break;
 				case STRING:	mem = bls + ls;
 				if(mem > lls){
 				cout << "OUT OF MEMORY!\n";
 				err = true;
 				}
+				if(dim == 0){
 				ls++;
+				}else{
+				ls += dim;
+				}
 				break;
 				case BOOLEAN:	mem = blb + lb;
 				if(mem > llb){
 				cout << "OUT OF MEMORY!\n";
 				err = true;
 				}
+				if(dim == 0){
 				lb++;
+				}else{
+				lb += dim;
+				}
 				break;
 				}
 				dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim, mem)));
@@ -1014,11 +1047,7 @@ void Parser::Esc() {
 		Expect(39 /* ")" */);
 		CVariable strRes = operandos.top();
 		operandos.pop();
-		if(strRes.var_dim > 1){
-		cout << "EXPRESSION CANNOT BE AN ARRAY!\n";
-		}else{
 		gen.push_back(Cuadruplo(WRI, strRes.dir, -1, -1));
-		}
 		Expect(36 /* ";" */);
 }
 
@@ -1038,7 +1067,7 @@ void Parser::Metodo() {
 		cout << "UNDECLARED METHOD: " << name << '\n';
 		err = TRUE;
 		}
-		gen.push_back(Cuadruplo(ERA, -5, -1, -1));
+		gen.push_back(Cuadruplo(ERA, dirProc[name].dirMem, -1, -1));
 		Expect(38 /* "(" */);
 		if (StartOf(6)) {
 			Lista();
@@ -1388,6 +1417,20 @@ void Parser::Factor() {
 				if (la->kind == 51 /* "." */) {
 					Llamada();
 				} else {
+					if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+					o1.name = temp;
+					o1.var_dim = dirProc[name].vars[temp].var_dim;
+					o1.var_type = dirProc[name].vars[temp].var_type;
+					o1.dir = dirProc[name].vars[temp].dir;
+					}else if(dirProc.find(temp) != dirProc.end()){
+					o1.name = temp;
+					o1.var_dim = 0;
+					o1.var_type = dirProc[temp].att_type;
+					o1.dir = dirProc[temp].dir;
+					}else {
+					cout << "UNDECLARED VARIABLE: " << temp << '\n';
+					err = TRUE;
+					}
 					Arr2();
 				}
 			}
@@ -1416,7 +1459,7 @@ void Parser::Return() {
 		if(operandos.size() != 0){
 		if(dirProc[name].att_type == operandos.top().var_type && 
 		operandos.top().var_dim < 2){
-		gen.push_back(Cuadruplo(MR, operandos.top().dir, -1, -1));
+		gen.push_back(Cuadruplo(MR, operandos.top().dir, -1, dirProc[name].dirMem));
 		operandos.pop();
 		}else{
 		cout << "RETURN VALUE IS NOT THE EXPECTED TYPE!\n";

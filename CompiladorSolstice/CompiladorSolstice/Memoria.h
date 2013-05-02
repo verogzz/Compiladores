@@ -24,6 +24,8 @@ using namespace std;
 #define bcd 21000
 #define bcs 22000
 #define bcb 23000
+#define btp 23002
+#define bmo 24000
 #define lgi 999
 #define lgd 1999
 #define lgs 2999
@@ -40,6 +42,8 @@ using namespace std;
 #define lcd 21999
 #define lcs 22999
 #define lcb 23001
+#define ltp 23999
+#define lmo 29999
 
 class Memoria{
 public:

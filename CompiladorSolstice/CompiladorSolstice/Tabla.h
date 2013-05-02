@@ -60,6 +60,7 @@ using namespace std;
 #define PAR 24
 #define VER 25
 #define MAI 26
+#define ACC 27
 
 class Variable {
 public: 

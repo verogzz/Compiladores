@@ -116,6 +116,8 @@ int ti;
 int td;
 int tb;
 int ts;
+int tp;
+int mo;
 int ci;
 int cd;
 int cb;

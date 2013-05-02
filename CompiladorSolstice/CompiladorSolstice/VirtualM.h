@@ -5,7 +5,9 @@
 #define LOCAL 1
 #define TEMPORAL 2
 #define CONSTANT 3
-#define ERROR 4
+#define POINTER 4
+#define OBJECTS 5
+#define ERROR 6
 
 #include <vector>
 #include <stdio.h>
@@ -27,6 +29,8 @@ public:
 	Memoria m_local;
 	Memoria m_temporal;
 	Memoria m_constante;
+	map<int, int> m_pointer;
+	map<int, int> m_obj;
 	unsigned int cIt;
 	stack<int> slines;
 	VirtualM();
@@ -60,6 +64,7 @@ public:
 	void return_value();
 	void parameter();
 	void limits_array();
+	void access();
 private:
 	stack<Memoria> sTemp;
 	stack<Memoria> sLocal;
