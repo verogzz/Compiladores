@@ -151,6 +151,8 @@ void VirtualM::run(){
 		case PAR : parameter(); break;
 		case VER : limits_array(); break;
 		case ACC : access();break;
+		case NOT: 
+		case END: exit(1);
 		default:
 			error(99);
 			break;
@@ -2485,7 +2487,7 @@ void VirtualM::asign(){
 			break;
 		}
 		break;
-	case POINTER: p = m_pointer[current.op1];
+	case POINTER: p = m_pointer[current.res];
 			switch(mvalue_type(p, LOCAL)){
 			case INT: m_local.m_i[p] = od1;
 				break;

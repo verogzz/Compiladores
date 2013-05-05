@@ -6,9 +6,8 @@
 COMPILER Solstice
 CTABLE dirProc;
 TABLE dirGral;
+CVariable paramx;
 Cubo c;
-CVariable o1;
-CVariable o2;
 stack<int> oper;
 stack<CVariable> operandos;
 stack<int> saltos;
@@ -110,8 +109,8 @@ PRODUCTIONS
 					className = "";
 					err = false;
 					cts.insert(CTS::value_type("1", Constantes(INT, bci + ci)));
-					gen.push_back(Cuadruplo(MAI, gen.size(), -1 , -1));
-					ci++;.)
+					ci++;
+					gen.push_back(Cuadruplo(MAI, gen.size(), -1 , -1));.)
 					Class Main.
 	
 	Arr = 	'[' 
@@ -121,24 +120,30 @@ PRODUCTIONS
 					}.)
 			']' .
 	
-	Arr2 = 	'['	(. int range = o1.var_dim;
-				if(range < 1){
+	Arr2 = 	'['	(.CVariable o = operandos.top();
+				CVariable q;
+				if(o.var_dim < 1){
 				cout << "VARIABLE IS NOT AN ARRAY!\n";	
 				err = true;
-				}.)
-			ExpOY 	(.if(!operandos.empty()){
-						o2 = operandos.top();
+				}
+				oper.push(PAR);.)
+			ExpOY 	(.if(oper.top() == PAR){
+						oper.pop();
+					}
+					if(!operandos.empty()){
 						operandos.pop();
-						if(o2.var_type == INT){
-							gen.push_back(Cuadruplo(VER, o2.dir, -1, range));
+						q = operandos.top();
+						operandos.pop();
+						if(q.var_type == INT){
+							gen.push_back(Cuadruplo(VER, q.dir, -1, o.var_dim));
 							int mem = btp + tp;
 							if(mem > ltp){
 								cout << "OUT OF MEMORY!\n";
 								err = true;
 							}
 							tp++;
-							gen.push_back(Cuadruplo(ACC, o2.dir, o1.dir, mem));
-							o1.var_dim = 0;
+							gen.push_back(Cuadruplo(ACC, q.dir, o.dir, mem));
+							operandos.push(CVariable(o.name, o.var_type, 0, mem));
 						}else{
 							cout << "EXPRESSION MUST BE INT TYPE!\n";	
 							err = true;
@@ -149,33 +154,38 @@ PRODUCTIONS
 					}.)
 			']' .
 	
-	Asig = ((tInc 	(.if(o1.var_type == INT && o1.var_dim < 2){
-						gen.push_back(Cuadruplo(SUM, o1.dir, cts["1"].dir , o1.dir));
+	Asig = ((tInc 	(.if(operandos.top().var_type == INT && operandos.top().var_dim < 2){
+						gen.push_back(Cuadruplo(SUM, operandos.top().dir, cts["1"].dir , operandos.top().dir));
+						operandos.pop();
 					} else {
-						cout << "TYPE MISMATCH! :" << o1.name << '\n';
+						cout << "TYPE MISMATCH! :" << operandos.top().name << '\n';
+						operandos.pop();
 						err = TRUE;
 					}.)| 
-			tDec 	(.if(o1.var_type == INT && o1.var_dim < 2){
-						gen.push_back(Cuadruplo(SUB, o1.dir, cts["1"].dir , o1.dir));
+			tDec 	(.if(operandos.top().var_type == INT && operandos.top().var_dim < 2){
+						gen.push_back(Cuadruplo(SUB, operandos.top().dir, cts["1"].dir , operandos.top().dir));
+						operandos.pop();
 					} else {
-						cout << "TYPE MISMATCH! :" << o1.name << '\n';
+						cout << "TYPE MISMATCH! :" << operandos.top().name << '\n';
+						operandos.pop();
 						err = TRUE;
 					}.)| 
 			Asig2) | Arr2
 			Asig2)';'.
 	
-	Asig2 = '=' ExpOY (.if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1 && 
-							o1.var_dim == operandos.top().var_dim){
-							gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1 , o1.dir));
-							operandos.pop();
+	Asig2 = '=' ExpOY (.CVariable q = operandos.top();
+						operandos.pop();
+						CVariable p = operandos.top();
+						operandos.pop();
+						if(c.cubo[q.var_type][p.var_type][ASI] != -1 && 
+							p.var_dim == q.var_dim){
+							gen.push_back(Cuadruplo(ASI, q.dir, -1 , p.dir));
 						} else {
-							cout << "TYPE MISMATCH! :" << o1.name << '\t' << operandos.top().name << '\n';
-							operandos.pop();
+							cout << "TYPE MISMATCH! :" << p.name << '\t' << q.name << '\n';
 							err = TRUE;
 						}.).
 	
-	Atributo 	(.	name = "";
-					vis = type = -1;.)
+	Atributo 	(.	name = ""; vis = type = -1;.)
 				= 
 				Vis Tipo idV (.	name = conv(t->val);
 								if(dirProc.find(name) == dirProc.end()){
@@ -239,9 +249,7 @@ PRODUCTIONS
 				gen[falso].res = gen.size();
 				.).
 				
-	Class 	(.string ext = "";
-			className = "";
-			dirProc.clear();.)
+	Class 	(.string ext = ""; className = ""; dirProc.clear();.)
 			= 
 			tCla idO (. className = conv(t->val); .) 
 			[tExt idO (. ext = conv(t->val);
@@ -315,8 +323,7 @@ PRODUCTIONS
 					gts--;
 					}.).
 	
-	Constructor (.name = ""; vis = type = -1;
-				li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	Constructor (.name = ""; vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 				= 	
 				idC (.name = conv(t->val);
 					if(dirProc.find(name) == dirProc.end()){
@@ -371,27 +378,23 @@ PRODUCTIONS
 	CTES (. string temp = ""; .)
 		= 	idV (.temp = conv(t->val);
 				if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-					o2.name = temp;
-					o2.var_dim = dirProc[name].vars[temp].var_dim;
-					o2.var_type = dirProc[name].vars[temp].var_type;
-					o2.dir = dirProc[name].vars[temp].dir;
+					operandos.push(CVariable(temp, 
+									dirProc[name].vars[temp].var_type, 
+									dirProc[name].vars[temp].var_dim, 
+									dirProc[name].vars[temp].dir));
 				} else if(dirProc.find(temp) != dirProc.end()){
-					o2.name = temp;
-					o2.var_dim = 0;
-					o2.var_type = dirProc[name].att_type;
-					o2.dir = dirProc[name].dir;
+					operandos.push(CVariable(temp, 
+									dirProc[name].att_type, 
+									0,
+									dirProc[name].dir));
 				} else {
 					cout << "UNDECLARED VARIABLE." << '\n';
 					err = TRUE;
 				}.)| 
 			CTE(.temp = conv(t->val);
-				o2.name = temp;
-				o2.var_dim = 0;
-				o2.var_type = ctype;
-				o2.dir = cts[temp].dir;
-				.).
+				operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));.).
 	
-	Decl (. string nameL; dim = 0;.) 
+	Decl (. string nameL = ""; dim = 0;.) 
 			= (New | Tipo idV (.nameL = conv(t->val); int mem = 0;.)
 			( '=' CTES | Arr) (.if(dirProc[name].vars.find(nameL) == dirProc[name].vars.end()){
 									switch (type){
@@ -446,10 +449,12 @@ PRODUCTIONS
 									err = TRUE;
 								}
 								if(dim == 0){
-									if(c.cubo[o2.var_type][type][ASI] != -1){
-										gen.push_back(Cuadruplo(ASI, o2.dir, -1, mem));
+									if(c.cubo[operandos.top().var_type][type][ASI] != -1){
+										gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1, mem));
+										operandos.pop();
 									} else {
-										cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
+										cout << "TYPE MISMATCH! :" << nameL << '\t' << operandos.top().name << '\n';
+										operandos.pop();
 										err = TRUE;
 									}
 								}.) 
@@ -507,14 +512,15 @@ PRODUCTIONS
 								err = TRUE;
 							}
 							if(dim == 0){
-								if(c.cubo[o2.var_type][type][ASI] != -1){
-									gen.push_back(Cuadruplo(ASI, o2.dir, -1, mem));
+								if(c.cubo[operandos.top().var_type][type][ASI] != -1){
+									gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1, mem));
+									operandos.pop();
 								} else {
-									cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
+									cout << "TYPE MISMATCH! :" << nameL << '\t' << operandos.top().name << '\n';
+									operandos.pop();
 									err = TRUE;
 								}
-							}.)}) 
-			';'.
+							}.)}) ';'.
 	
 	Esc = 	tEsc '(' ExpOY 
 			{(.if(!oper.empty() && oper.top() == APP){
@@ -566,20 +572,18 @@ PRODUCTIONS
 				operandos.pop();
 				gen.push_back(Cuadruplo(WRI, strRes.dir, -1, -1));.)';'.
 	
-	Estatuto 	(.string temp = "";
-				o1.~CVariable();
-				o2.~CVariable();.)
+	Estatuto 	(.string temp = "";.)
 				= (idV (.temp = conv(t->val); 
 						if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-							o1.name = temp;
-							o1.var_dim = dirProc[name].vars[temp].var_dim;
-							o1.var_type = dirProc[name].vars[temp].var_type;
-							o1.dir = dirProc[name].vars[temp].dir;
+							operandos.push(CVariable(temp, 
+										dirProc[name].vars[temp].var_type,
+										dirProc[name].vars[temp].var_dim,
+										dirProc[name].vars[temp].dir));
 						}else if(dirProc.find(temp) != dirProc.end()){
-							o1.name = temp;
-							o1.var_dim = 0;
-							o1.var_type = dirProc[temp].att_type;
-							o1.dir = dirProc[temp].dir;
+							operandos.push(CVariable(temp, 
+										dirProc[temp].att_type,
+										0,
+										dirProc[temp].dir));
 						}else {
 							cout << "UNDECLARED VARIABLE: " << temp << '\n';
 							err = TRUE;
@@ -784,44 +788,39 @@ PRODUCTIONS
 				')' (.oper.pop();.)| 
 				idV (.string temp = conv(t->val);
 					if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-						operandos.push(CVariable(temp, dirProc[name].vars[temp].var_type, dirProc[name].vars[temp].var_dim, dirProc[name].vars[temp].dir));
+						operandos.push(CVariable(temp, 
+										dirProc[name].vars[temp].var_type, 
+										dirProc[name].vars[temp].var_dim, 
+										dirProc[name].vars[temp].dir));
 					} else if(dirProc.find(temp) != dirProc.end()){
-						operandos.push(CVariable(temp, dirProc[temp].att_type, dirProc[temp].att_mtd, dirProc[temp].dir));
+						operandos.push(CVariable(temp, 
+										dirProc[temp].att_type, 
+										dirProc[temp].att_mtd, 
+										dirProc[temp].dir));
 					} else {
 						cout << "UNDECLARED VARIABLE: " << temp << '\n';
 						err = true;
 					}.)
-				[Llamada|
-						(.if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-							o1.name = temp;
-							o1.var_dim = dirProc[name].vars[temp].var_dim;
-							o1.var_type = dirProc[name].vars[temp].var_type;
-							o1.dir = dirProc[name].vars[temp].dir;
-						}else if(dirProc.find(temp) != dirProc.end()){
-							o1.name = temp;
-							o1.var_dim = 0;
-							o1.var_type = dirProc[temp].att_type;
-							o1.dir = dirProc[temp].dir;
-						}else {
-							cout << "UNDECLARED VARIABLE: " << temp << '\n';
-							err = TRUE;
-						}.)
-					Arr2] | 
+				[Llamada|Arr2] | 
 				CTE (.string temp = conv(t->val);
 					operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));
 				.) | Metodo).
 	
 	Init = idV (.string temp = conv(t->val); 
 				if(dirProc.find(temp) != dirProc.end()){
-					o1.name = temp;
-					o1.var_dim = 0;
-					o1.var_type = dirProc[temp].att_type;
-					o1.dir = dirProc[temp].dir;
+					operandos.push(CVariable(temp, 
+										dirProc[temp].att_type, 
+										dirProc[temp].att_mtd, 
+										dirProc[temp].dir));
 				}else{
 					cout << "UNDECLARED VARIABLE: " << temp << '\n';
 					err = TRUE;
 				}.)  
-			'=' CTES(.if(c.cubo[o2.var_type][o1.var_type][ASI] != -1 && 
+			'=' CTES(.CVariable o2 = operandos.top();
+					operandos.pop();
+					CVariable o1 = operandos.top();
+					operandos.pop();
+					if(c.cubo[o2.var_type][o1.var_type][ASI] != -1 && 
 						o1.var_dim == o2.var_dim){
 						gen.push_back(Cuadruplo(ASI,o2.dir, -1, o1.dir));
 					} else {
@@ -830,7 +829,7 @@ PRODUCTIONS
 					}.)
 			';'.
 	
-	Lec = tLec '(' idV (.string temp = conv(t->val); 
+	Lec = tLec '(' idV (.CVariable o1; string temp = conv(t->val); 
 						if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 							o1.name = temp;
 							o1.var_dim = 0;
@@ -851,7 +850,7 @@ PRODUCTIONS
 						}.)
 			')' ';'.
 	
-	Lista = CTES (.t_params.push_back(o2);.)
+	Lista = CTES (.t_params.push_back(operandos.top()); operandos.pop();.)
 			[',' Lista].
 	
 	Main = tMai (.name = conv(t->val);
@@ -868,7 +867,8 @@ PRODUCTIONS
 				{Decl} {Estatuto} '}'
 				(.if(dirGral.find("main") == dirGral.end()){
 					dirGral.insert(TABLE::value_type("main", ClassStruct("", dirProc)));
-				}.).
+				}
+				gen.push_back(Cuadruplo(END, -1, -1, -1));.).
 	
 	Metodo = 	idM (.string name = conv(t->val);
 					if(dirProc.find(name) == dirProc.end()){
@@ -891,8 +891,7 @@ PRODUCTIONS
 				')'
 				(.gen.push_back(Cuadruplo(GSU, dirProc[name].dir, -1, -1));.).
 	
-	MetodoR 	(.vis = type = -1;
-				li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	MetodoR 	(.vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	Tipo idM (.	name = conv(t->val);
 							int mem = 0;
 							switch (type){
@@ -937,8 +936,7 @@ PRODUCTIONS
 				'}' (. 	name = "";
 						gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
 						
-	MetodoV 	(.vis = type = -1;
-				li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	MetodoV 	(.vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	tVoi idM (.	name = conv(t->val);
 							if(dirProc.find(name) == dirProc.end()){
 								dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));
@@ -1101,9 +1099,9 @@ PRODUCTIONS
 	Tipo = 	tInt (. type = INT; .)| 
 			tDou (. type = DOUBLE; .)| 
 			tStr (. type = STRING; .)| 
-			tBoo(. type = BOOLEAN; .).
+			tBoo (. type = BOOLEAN; .).
 	
 	Vis = 	tPub (. vis = PUBLIC; .)| 
 			tPri (. vis = PRIVATE; .)| 
-			tPro(. vis = PROTECT; .).
+			tPro (. vis = PROTECT; .).
 END Solstice.	

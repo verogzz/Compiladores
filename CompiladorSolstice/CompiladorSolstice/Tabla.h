@@ -61,6 +61,8 @@ using namespace std;
 #define VER 25
 #define MAI 26
 #define ACC 27
+#define NOT 28
+#define END 29
 
 class Variable {
 public: 

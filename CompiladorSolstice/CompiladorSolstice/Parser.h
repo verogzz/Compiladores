@@ -88,9 +88,8 @@ public:
 
 CTABLE dirProc;
 TABLE dirGral;
+CVariable paramx;
 Cubo c;
-CVariable o1;
-CVariable o2;
 stack<int> oper;
 stack<CVariable> operandos;
 stack<int> saltos;

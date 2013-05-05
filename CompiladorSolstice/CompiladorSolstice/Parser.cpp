@@ -72,16 +72,14 @@ void Parser::Solstice() {
 		className = "";
 		err = false;
 		cts.insert(CTS::value_type("1", Constantes(INT, bci + ci)));
-		gen.push_back(Cuadruplo(MAI, gen.size(), -1 , -1));
 		ci++;
+		gen.push_back(Cuadruplo(MAI, gen.size(), -1 , -1));
 		Class();
 		Main();
 }
 
 void Parser::Class() {
-		string ext = "";
-		className = "";
-		dirProc.clear();
+		string ext = ""; className = ""; dirProc.clear();
 		Expect(_tCla);
 		Expect(_idO);
 		className = conv(t->val); 
@@ -140,6 +138,7 @@ void Parser::Main() {
 		if(dirGral.find("main") == dirGral.end()){
 		dirGral.insert(TABLE::value_type("main", ClassStruct("", dirProc)));
 		}
+		gen.push_back(Cuadruplo(END, -1, -1, -1));
 }
 
 void Parser::Arr() {
@@ -154,25 +153,31 @@ void Parser::Arr() {
 
 void Parser::Arr2() {
 		Expect(34 /* "[" */);
-		int range = o1.var_dim;
-		if(range < 1){
+		CVariable o = operandos.top();
+		operandos.pop();
+		CVariable q;
+		if(o.var_dim < 1){
 		cout << "VARIABLE IS NOT AN ARRAY!\n";	
 		err = true;
 		}
+		oper.push(PAR);
 		ExpOY();
+		if(oper.top() == PAR){
+		oper.pop();
+		}
 		if(!operandos.empty()){
-		o2 = operandos.top();
+		q = operandos.top();
 		operandos.pop();
-		if(o2.var_type == INT){
-		gen.push_back(Cuadruplo(VER, o2.dir, -1, range));
+		if(q.var_type == INT){
+		gen.push_back(Cuadruplo(VER, q.dir, -1, o.var_dim));
 		int mem = btp + tp;
 		if(mem > ltp){
 		cout << "OUT OF MEMORY!\n";
 		err = true;
 		}
 		tp++;
-		gen.push_back(Cuadruplo(ACC, o2.dir, o1.dir, mem));
-		o1.var_dim = 0;
+		gen.push_back(Cuadruplo(ACC, q.dir, o.dir, mem));
+		operandos.push(CVariable(o.name, o.var_type, 0, mem));
 		}else{
 		cout << "EXPRESSION MUST BE INT TYPE!\n";	
 		err = true;
@@ -253,18 +258,22 @@ void Parser::Asig() {
 		if (la->kind == _tInc || la->kind == _tDec || la->kind == 37 /* "=" */) {
 			if (la->kind == _tInc) {
 				Get();
-				if(o1.var_type == INT && o1.var_dim < 2){
-				gen.push_back(Cuadruplo(SUM, o1.dir, cts["1"].dir , o1.dir));
+				if(operandos.top().var_type == INT && operandos.top().var_dim < 2){
+				gen.push_back(Cuadruplo(SUM, operandos.top().dir, cts["1"].dir , operandos.top().dir));
+				operandos.pop();
 				} else {
-				cout << "TYPE MISMATCH! :" << o1.name << '\n';
+				cout << "TYPE MISMATCH! :" << operandos.top().name << '\n';
+				operandos.pop();
 				err = TRUE;
 				}
 			} else if (la->kind == _tDec) {
 				Get();
-				if(o1.var_type == INT && o1.var_dim < 2){
-				gen.push_back(Cuadruplo(SUB, o1.dir, cts["1"].dir , o1.dir));
+				if(operandos.top().var_type == INT && operandos.top().var_dim < 2){
+				gen.push_back(Cuadruplo(SUB, operandos.top().dir, cts["1"].dir , operandos.top().dir));
+				operandos.pop();
 				} else {
-				cout << "TYPE MISMATCH! :" << o1.name << '\n';
+				cout << "TYPE MISMATCH! :" << operandos.top().name << '\n';
+				operandos.pop();
 				err = TRUE;
 				}
 			} else {
@@ -280,20 +289,21 @@ void Parser::Asig() {
 void Parser::Asig2() {
 		Expect(37 /* "=" */);
 		ExpOY();
-		if(c.cubo[operandos.top().var_type][o1.var_type][ASI] != -1 && 
-		o1.var_dim == operandos.top().var_dim){
-		gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1 , o1.dir));
+		CVariable q = operandos.top();
 		operandos.pop();
+		CVariable p = operandos.top();
+		operandos.pop();
+		if(c.cubo[q.var_type][p.var_type][ASI] != -1 && 
+		p.var_dim == q.var_dim){
+		gen.push_back(Cuadruplo(ASI, q.dir, -1 , p.dir));
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << operandos.top().name << '\n';
-		operandos.pop();
+		cout << "TYPE MISMATCH! :" << p.name << '\t' << q.name << '\n';
 		err = TRUE;
 		}
 }
 
 void Parser::Atributo() {
-		name = "";
-		vis = type = -1;
+		name = ""; vis = type = -1;
 		Vis();
 		Tipo();
 		Expect(_idV);
@@ -385,8 +395,7 @@ void Parser::Bloque() {
 }
 
 void Parser::Constructor() {
-		name = ""; vis = type = -1;
-		li = ld = lb = ls = ti = td = tb = ts = 0;
+		name = ""; vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
 		Expect(_idC);
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
@@ -408,8 +417,7 @@ void Parser::Constructor() {
 }
 
 void Parser::MetodoR() {
-		vis = type = -1;
-		li = ld = lb = ls = ti = td = tb = ts = 0;
+		vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
 		Tipo();
 		Expect(_idM);
 		name = conv(t->val);
@@ -470,8 +478,7 @@ void Parser::MetodoR() {
 }
 
 void Parser::MetodoV() {
-		vis = type = -1;
-		li = ld = lb = ls = ti = td = tb = ts = 0;
+		vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
 		Expect(_tVoi);
 		Expect(_idM);
 		name = conv(t->val);
@@ -529,22 +536,20 @@ void Parser::Ciclo() {
 
 void Parser::Estatuto() {
 		string temp = "";
-		o1.~CVariable();
-		o2.~CVariable();
 		switch (la->kind) {
 		case _idV: {
 			Get();
 			temp = conv(t->val); 
 			if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-			o1.name = temp;
-			o1.var_dim = dirProc[name].vars[temp].var_dim;
-			o1.var_type = dirProc[name].vars[temp].var_type;
-			o1.dir = dirProc[name].vars[temp].dir;
+			operandos.push(CVariable(temp, 
+			dirProc[name].vars[temp].var_type,
+			dirProc[name].vars[temp].var_dim,
+			dirProc[name].vars[temp].dir));
 			}else if(dirProc.find(temp) != dirProc.end()){
-			o1.name = temp;
-			o1.var_dim = 0;
-			o1.var_type = dirProc[temp].att_type;
-			o1.dir = dirProc[temp].dir;
+			operandos.push(CVariable(temp, 
+			dirProc[temp].att_type,
+			0,
+			dirProc[temp].dir));
 			}else {
 			cout << "UNDECLARED VARIABLE: " << temp << '\n';
 			err = TRUE;
@@ -718,16 +723,20 @@ void Parser::Init() {
 		Expect(_idV);
 		string temp = conv(t->val); 
 		if(dirProc.find(temp) != dirProc.end()){
-		o1.name = temp;
-		o1.var_dim = 0;
-		o1.var_type = dirProc[temp].att_type;
-		o1.dir = dirProc[temp].dir;
+		operandos.push(CVariable(temp, 
+		dirProc[temp].att_type, 
+		dirProc[temp].att_mtd, 
+		dirProc[temp].dir));
 		}else{
 		cout << "UNDECLARED VARIABLE: " << temp << '\n';
 		err = TRUE;
 		}
 		Expect(37 /* "=" */);
 		CTES();
+		CVariable o2 = operandos.top();
+		operandos.pop();
+		CVariable o1 = operandos.top();
+		operandos.pop();
 		if(c.cubo[o2.var_type][o1.var_type][ASI] != -1 && 
 		o1.var_dim == o2.var_dim){
 		gen.push_back(Cuadruplo(ASI,o2.dir, -1, o1.dir));
@@ -796,15 +805,15 @@ void Parser::CTES() {
 			Get();
 			temp = conv(t->val);
 			if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-			o2.name = temp;
-			o2.var_dim = dirProc[name].vars[temp].var_dim;
-			o2.var_type = dirProc[name].vars[temp].var_type;
-			o2.dir = dirProc[name].vars[temp].dir;
+			operandos.push(CVariable(temp, 
+			dirProc[name].vars[temp].var_type, 
+			dirProc[name].vars[temp].var_dim, 
+			dirProc[name].vars[temp].dir));
 			} else if(dirProc.find(temp) != dirProc.end()){
-			o2.name = temp;
-			o2.var_dim = 0;
-			o2.var_type = dirProc[name].att_type;
-			o2.dir = dirProc[name].dir;
+			operandos.push(CVariable(temp, 
+			dirProc[name].att_type, 
+			0,
+			dirProc[name].dir));
 			} else {
 			cout << "UNDECLARED VARIABLE." << '\n';
 			err = TRUE;
@@ -812,16 +821,12 @@ void Parser::CTES() {
 		} else if (StartOf(5)) {
 			CTE();
 			temp = conv(t->val);
-			o2.name = temp;
-			o2.var_dim = 0;
-			o2.var_type = ctype;
-			o2.dir = cts[temp].dir;
-			
+			operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));
 		} else SynErr(63);
 }
 
 void Parser::Decl() {
-		string nameL; dim = 0;
+		string nameL = ""; dim = 0;
 		if (la->kind == _idO) {
 			New();
 		} else if (StartOf(3)) {
@@ -887,10 +892,12 @@ void Parser::Decl() {
 			err = TRUE;
 			}
 			if(dim == 0){
-			if(c.cubo[o2.var_type][type][ASI] != -1){
-			gen.push_back(Cuadruplo(ASI, o2.dir, -1, mem));
+			if(c.cubo[operandos.top().var_type][type][ASI] != -1){
+			gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1, mem));
+			operandos.pop();
 			} else {
-			cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
+			cout << "TYPE MISMATCH! :" << nameL << '\t' << operandos.top().name << '\n';
+			operandos.pop();
 			err = TRUE;
 			}
 			}
@@ -957,10 +964,12 @@ void Parser::Decl() {
 				err = TRUE;
 				}
 				if(dim == 0){
-				if(c.cubo[o2.var_type][type][ASI] != -1){
-				gen.push_back(Cuadruplo(ASI, o2.dir, -1, mem));
+				if(c.cubo[operandos.top().var_type][type][ASI] != -1){
+				gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1, mem));
+				operandos.pop();
 				} else {
-				cout << "TYPE MISMATCH! :" << nameL << '\t' << o2.name << '\n';
+				cout << "TYPE MISMATCH! :" << nameL << '\t' << operandos.top().name << '\n';
+				operandos.pop();
 				err = TRUE;
 				}
 				}
@@ -1092,7 +1101,7 @@ void Parser::Lec() {
 		Expect(_tLec);
 		Expect(38 /* "(" */);
 		Expect(_idV);
-		string temp = conv(t->val); 
+		CVariable o1; string temp = conv(t->val); 
 		if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
 		o1.name = temp;
 		o1.var_dim = 0;
@@ -1406,9 +1415,15 @@ void Parser::Factor() {
 			Get();
 			string temp = conv(t->val);
 			if(dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-			operandos.push(CVariable(temp, dirProc[name].vars[temp].var_type, dirProc[name].vars[temp].var_dim, dirProc[name].vars[temp].dir));
+			operandos.push(CVariable(temp, 
+			dirProc[name].vars[temp].var_type, 
+			dirProc[name].vars[temp].var_dim, 
+			dirProc[name].vars[temp].dir));
 			} else if(dirProc.find(temp) != dirProc.end()){
-			operandos.push(CVariable(temp, dirProc[temp].att_type, dirProc[temp].att_mtd, dirProc[temp].dir));
+			operandos.push(CVariable(temp, 
+			dirProc[temp].att_type, 
+			dirProc[temp].att_mtd, 
+			dirProc[temp].dir));
 			} else {
 			cout << "UNDECLARED VARIABLE: " << temp << '\n';
 			err = true;
@@ -1417,20 +1432,6 @@ void Parser::Factor() {
 				if (la->kind == 51 /* "." */) {
 					Llamada();
 				} else {
-					if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-					o1.name = temp;
-					o1.var_dim = dirProc[name].vars[temp].var_dim;
-					o1.var_type = dirProc[name].vars[temp].var_type;
-					o1.dir = dirProc[name].vars[temp].dir;
-					}else if(dirProc.find(temp) != dirProc.end()){
-					o1.name = temp;
-					o1.var_dim = 0;
-					o1.var_type = dirProc[temp].att_type;
-					o1.dir = dirProc[temp].dir;
-					}else {
-					cout << "UNDECLARED VARIABLE: " << temp << '\n';
-					err = TRUE;
-					}
 					Arr2();
 				}
 			}
@@ -1446,7 +1447,7 @@ void Parser::Factor() {
 
 void Parser::Lista() {
 		CTES();
-		t_params.push_back(o2);
+		t_params.push_back(operandos.top()); operandos.pop();
 		if (la->kind == 42 /* "," */) {
 			Get();
 			Lista();
