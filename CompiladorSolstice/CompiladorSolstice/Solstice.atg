@@ -39,8 +39,10 @@ int ci;
 int cd;
 int cb;
 int cs;
+int classCount;
 string name;
 string className;
+string objType;
 bool err;
 
 string conv(wchar_t* x){
@@ -102,7 +104,7 @@ IGNORE rc + sl + tab
 
 PRODUCTIONS
 	Solstice = (. 	c = Cubo(); 
-					availNum = 0;
+					availNum = classCount = 0;
 					type = ctype = vis = dim = -1;
 					name = "";
 					gi = gd = gb = gs = li = ld = lb = ls = ti = td = tb = ts = ci = cd = cb = cs = tp = mo = 0;
@@ -191,32 +193,16 @@ PRODUCTIONS
 								if(dirProc.find(name) == dirProc.end()){
 									int mem = 0;
 									switch (type){
-									case INT:	mem = bgi + gi;
-												if(mem > lgi){
-													cout << "OUT OF MEMORY!\n";
-													err = true;
-												}
+									case INT:	mem = gi;
 												gi++;
 												break;
-									case DOUBLE:	mem = bgd + gd;
-												if(mem > lgd){
-													cout << "OUT OF MEMORY!\n";
-													err = true;
-												}
+									case DOUBLE:	mem = gd;
 												gd++;
 												break;
-									case STRING:	mem = bgs + gs;
-												if(mem > lgs){
-													cout << "OUT OF MEMORY!\n";
-													err = true;
-												}
+									case STRING:	mem = gs;
 												gs++;
 												break;
-									case BOOLEAN:	mem = bgb + gb;
-												if(mem > lgb){
-													cout << "OUT OF MEMORY!\n";
-													err = true;
-												}
+									case BOOLEAN:	mem = gb;
 												gb++;
 												break;
 									}
@@ -275,7 +261,8 @@ PRODUCTIONS
 									tam++;
 								}
 						}
-					dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc, tam)));
+					dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc, tam, classCount)));
+					classCount++;
 				}else{
 					cout << "CLASS PREVIOUSLY DECLARED!\n";
 				}.)
@@ -334,13 +321,18 @@ PRODUCTIONS
 	Constructor (.name = ""; vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 				= 	
 				idC (.name = conv(t->val);
+					if(className.compare(name.substr(1)) != 0){
+						cout << "Invalid Constructor Name\n" ;
+						err = true;
+					}
 					if(dirProc.find(name) == dirProc.end()){
-						dirProc.insert(CTABLE::value_type(name, Attribute(PUBLIC, OBJECT, 1)));
+						dirProc.insert(CTABLE::value_type(name, Attribute(PUBLIC, OBJECT, 1, gen.size(), 10000)));
 					} else {
 						cout << "CANNOT DECLARE MORE THAN ONE CONSTRUCTOR." << '\n';
 						err = TRUE;
 					}.)
-				'(' [Param] ')' '{' {Init} '}'.
+				'(' [Param] ')' '{' {Init} '}'
+				(.gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
 	
 	CTE (.ctype = -1;.)
 		= 	(cteS (. ctype = 2; .)| 
@@ -914,25 +906,31 @@ PRODUCTIONS
 				gen.push_back(Cuadruplo(END, -1, -1, -1));.).
 	
 	Metodo = 	idM (.string name = conv(t->val);
-					if(dirProc.find(name) == dirProc.end()){
+					CTABLE ttemp;
+					if(dirProc.find(name) != dirProc.end()){
+						ttemp = dirProc;
+						gen.push_back(Cuadruplo(ERA, ttemp[name].dir, -1, -1));
+					}else if(dirGral[objType].attributes.find(name) != dirGral[objType].attributes.end()){
+						ttemp = dirGral[objType].attributes;
+						gen.push_back(Cuadruplo(ERA, ttemp[name].dir, -1, -1));
+					}else{
 						cout << "UNDECLARED METHOD: " << name << '\n';
 						err = TRUE;
-					}
-					gen.push_back(Cuadruplo(ERA, dirProc[name].dirMem, -1, -1));.)
-				'(' [Lista] (.if(t_params.size() == dirProc[name].params.size()){
-								for(int i = 0; i < dirProc[name].params.size(); i++){
-									if (t_params.at(i).var_type != dirProc[name].params.at(i)){
+					}.)
+				'(' [Lista] (.if(t_params.size() == ttemp[name].params.size()){
+								for(int i = 0; i < ttemp[name].params.size(); i++){
+									if (t_params.at(i).var_type != ttemp[name].params.at(i).var_type){
 										cout << "PARAMETER TYPES MISMATCH.\n";
-										i = dirProc[name].params.size();
+										i = ttemp[name].params.size();
 									}
-									gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , i+1));
+									gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , ttemp[name].params.at(i).dir));
 								}
 							}else{
 								cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
 							}
 							t_params.clear();.)
 				')'
-				(.gen.push_back(Cuadruplo(GSU, dirProc[name].dir, -1, -1));.).
+				(.gen.push_back(Cuadruplo(GSU, ttemp[name].dir, -1, -1));.).
 	
 	MetodoR 	(.vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	Tipo idM (.	name = conv(t->val);
@@ -998,7 +996,7 @@ PRODUCTIONS
 			if((dirGral.find(classN) != dirGral.end()) && (dirProc[name].vars.find(idName) == dirProc[name].vars.end())){
 				mem = bmo + mo;
 				mo = mo + dirGral[classN].tamanio;
-				dirProc[name].vars.insert(VMAP::value_type(idName, Variable(4, 0, mem)));
+				dirProc[name].vars.insert(VMAP::value_type(idName, Variable(OBJECT + dirGral[classN].serie, 0, mem)));
 			} else {
 				cout << "PREVIOUSLY DECLARED VARIABLE: " << idName << '\n';
 				err = TRUE;
@@ -1009,21 +1007,21 @@ PRODUCTIONS
 				cout << "UNDECLARED CONSTRUCTOR: " << consN << '\n';
 				err = TRUE;
 			}
-			gen.push_back(Cuadruplo(ERA, dirGral[classN].attributes[consN].dirMem, -1, -1));.)
+			gen.push_back(Cuadruplo(ERA, dirGral[classN].attributes[consN].dir, -1, -1));.)
 		'(' 
 		[Lista]	(.if(t_params.size() == dirGral[classN].attributes[consN].params.size()){
 					for(int i = 0; i < dirGral[classN].attributes[consN].params.size(); i++){
-						if (t_params.at(i).var_type != dirGral[classN].attributes[consN].params.at(i)){
+						if (t_params.at(i).var_type != dirGral[classN].attributes[consN].params.at(i).var_type){
 							cout << "PARAMETER TYPES MISMATCH.\n";
 							i = dirGral[classN].attributes[consN].params.size();
 						}
-						gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , i+1));
+						gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , dirGral[classN].attributes[consN].params.at(i).dir));
 					}
 				}else{
 					cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
 				}
 				t_params.clear();.)
-		')'.
+		')'(.gen.push_back(Cuadruplo(GSU, dirGral[classN].attributes[consN].dir, -1, -1));.).
 					
 	Param (. string nameL; .) 
 		= Tipo idV (.	nameL = conv(t->val);
@@ -1060,14 +1058,30 @@ PRODUCTIONS
 										break;
 							}
 							dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0, mem)));
-							dirProc[name].params.push_back(type);
+							dirProc[name].params.push_back(Variable(type, 0, mem));
 						} else {
 							cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 							err = TRUE;
 						}
 					.)[',' Param].
 					
-	Llamada = '.' (Metodo | idV).
+	Llamada = (.objType = "";
+				CVariable o = operandos.top();
+				operandos.pop();
+				for(TABLE::iterator i = dirGral.begin(); i != dirGral.end(); i++){
+					if(i->second.serie == (o.var_type - OBJECT)){
+						objType = i->first;
+						break;
+					}
+				}.) 
+			'.' (Metodo | 
+			idV (.string att = conv(t->val);
+				if(dirGral[objType].attributes.find(att) != dirGral[objType].attributes.end()){
+					operandos.push(CVariable(att, dirGral[objType].attributes[att].att_type, 0, dirGral[objType].attributes[att].dir));
+				}else{
+					cout << "Attribute not declared!";
+					err = true;
+				}.)).
 	
 	Return = 	tRet ExpOY (.if(operandos.size() != 0){
 								if(dirProc[name].att_type == operandos.top().var_type && 

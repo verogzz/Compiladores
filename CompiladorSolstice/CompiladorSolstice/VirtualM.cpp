@@ -120,6 +120,10 @@ int VirtualM::mvalue_type(int dir, int mt){
 }
 
 void VirtualM::run(){
+	for(cIt = 0; cIt < prog.size(); cIt++){
+		current = prog.at(cIt);
+		cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+	}
 	for(cIt = prog.at(0).op1; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
 		//cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
@@ -3056,6 +3060,21 @@ void VirtualM::parameter(){
 		}
 		break;
 	case LOCAL: 
+		switch(mvalue_type(current.res, LOCAL)){
+		case INT: m_local.m_i[current.res] = od1;
+			break;
+		case DOUBLE: m_local.m_d[current.res] = od1;
+			break;
+		case STRING: m_local.m_s[current.res] = os1;
+			break;
+		case BOOLEAN: m_local.m_b[current.res] = ob1;
+			break;
+		case ERROR:
+		default:
+			error(1);
+			break;
+		}
+		break;
 	case GLOBAL: 
 	case CONSTANT: 
 	case ERROR:

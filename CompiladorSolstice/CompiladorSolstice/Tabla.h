@@ -17,9 +17,9 @@ using namespace std;
 #define DOUBLE 1
 #define STRING 2
 #define BOOLEAN 3
-#define OBJECT 4
-#define VOID 5
-#define MAIN 6
+#define VOID 4
+#define MAIN 5
+#define OBJECT 6
 
 #define ATM 0
 #define ARR 1
@@ -81,7 +81,7 @@ public:
 	int att_mtd;
 	int dir;
 	int dirMem;
-	vector<int> params;
+	vector<Variable> params;
 	VMAP vars;
 	Attribute();
 	Attribute(int vis, int type, int a_type, int dr);
@@ -95,9 +95,10 @@ public:
 	string extended;
 	CTABLE attributes;
 	int tamanio;
+	int serie;
 	ClassStruct();
 	ClassStruct(string e, CTABLE proc);
-	ClassStruct(string e, CTABLE proc, int tam);
+	ClassStruct(string e, CTABLE proc, int tam, int s);
 };
 typedef std::map<string, ClassStruct> TABLE;
 

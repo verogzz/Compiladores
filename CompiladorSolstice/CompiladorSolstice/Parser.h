@@ -121,8 +121,10 @@ int ci;
 int cd;
 int cb;
 int cs;
+int classCount;
 string name;
 string className;
+string objType;
 bool err;
 
 string conv(wchar_t* x){

@@ -47,10 +47,11 @@ ClassStruct::ClassStruct(string e, CTABLE proc){
 	attributes = proc;
 };
 
-ClassStruct::ClassStruct(string e, CTABLE proc, int tam){
+ClassStruct::ClassStruct(string e, CTABLE proc, int tam, int s){
 	extended = e;
 	attributes = proc;
 	tamanio = tam;
+	serie = s;
 };
 
 Cuadruplo::Cuadruplo(int a, int o1, int o2, int r){
