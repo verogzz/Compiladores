@@ -65,7 +65,6 @@ public:
 	void parameter();
 	void limits_array();
 	void access();
-	void negation();
 private:
 	stack<Memoria> sTemp;
 	stack<Memoria> sLocal;

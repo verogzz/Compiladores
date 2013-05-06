@@ -94,10 +94,8 @@ class ClassStruct {
 public:
 	string extended;
 	CTABLE attributes;
-	int tamanio;
 	ClassStruct();
 	ClassStruct(string e, CTABLE proc);
-	ClassStruct(string e, CTABLE proc, int tam);
 };
 typedef std::map<string, ClassStruct> TABLE;
 

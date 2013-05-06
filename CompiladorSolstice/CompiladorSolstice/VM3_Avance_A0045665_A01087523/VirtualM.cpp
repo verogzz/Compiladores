@@ -151,7 +151,7 @@ void VirtualM::run(){
 		case PAR : parameter(); break;
 		case VER : limits_array(); break;
 		case ACC : access();break;
-		case NOT: negation(); break;
+		case NOT: 
 		case END: exit(1);
 		default:
 			error(99);
@@ -3199,119 +3199,6 @@ void VirtualM::access(){
 	switch (memory_type(current.res)){
 	case POINTER: 
 		m_pointer[current.res] = base + sub;
-		break;
-	default:
-		error(0);
-		break;
-	}
-}
-
-void VirtualM::negation(){
-	double o1;	
-	bool o;
-	int p = 0;
-	switch (memory_type(current.op1)){
-	case GLOBAL: 
-		switch(mvalue_type(current.op1, GLOBAL)){
-		case INT: o1 = m_global.m_i[current.op1];
-			break;
-		case DOUBLE: o1 = m_global.m_d[current.op1];
-			break;
-		case BOOLEAN: o = m_global.m_b[current.op1];
-			break;
-		default:
-			error(1);
-			break;
-		}
-		break;
-	case LOCAL: 
-		switch(mvalue_type(current.op1, LOCAL)){
-		case INT: o1 = m_local.m_i[current.op1];
-			break;
-		case DOUBLE: o1 = m_local.m_d[current.op1];
-			break;
-		case BOOLEAN: o = m_local.m_b[current.op1];
-			break;
-		default:
-			error(1);
-			break;
-		}
-		break;
-	case TEMPORAL: 
-		switch(mvalue_type(current.op1, TEMPORAL)){
-		case INT: o1 =m_temporal.m_i[current.op1];
-			break;
-		case DOUBLE: o1 = m_temporal.m_d[current.op1];
-			break;
-		case BOOLEAN: o = m_temporal.m_b[current.op1];
-			break;
-		default:
-			error(1);
-			break;
-		}
-		break;
-	case CONSTANT: 
-		switch(mvalue_type(current.op1, CONSTANT)){
-		case INT: o1 = m_constante.m_i[current.op1];
-			break;
-		case DOUBLE: o1 = m_constante.m_d[current.op1];
-			break;
-		case BOOLEAN: o = m_constante.m_b[current.op1];
-			break;
-		default:
-			error(1);
-			break;
-		}
-		break;
-	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			case BOOLEAN: o = m_local.m_b[p];
-				break;
-			default:
-				error(5);
-				break;
-			}
-			break;
-	case ERROR:
-	default:
-		error(0);
-		break;
-	}
-
-	switch (memory_type(current.res)){
-	case TEMPORAL: 
-		switch(mvalue_type(current.res, TEMPORAL)){
-		case INT: m_temporal.m_i[current.res] = o1 * -1;
-			break;
-		case DOUBLE: m_temporal.m_d[current.res] = o1 * -1;
-			break;
-		case BOOLEAN: m_temporal.m_b[current.res] = !o;
-			break;
-		case STRING: 
-		case ERROR:
-		default:
-			error(1);
-			break;
-		}
-		break;
-	case LOCAL: 
-		switch(mvalue_type(current.res, LOCAL)){
-		case INT: m_local.m_i[current.res] = o1 * -1;
-			break;
-		case DOUBLE: m_local.m_d[current.res] = o1 * -1;
-			break;
-		case BOOLEAN: m_local.m_b[current.res] = !o;
-			break;
-		case STRING: 
-		case ERROR:
-		default:
-			error(1);
-			break;
-		}
 		break;
 	default:
 		error(0);

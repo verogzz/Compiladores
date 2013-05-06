@@ -104,15 +104,7 @@ void Parser::Class() {
 		Bloque();
 		Expect(41 /* "}" */);
 		if(dirGral.find(className) == dirGral.end()){
-		int tam = -1;
-		for(CTABLE::iterator i = dirGral[ext].attributes.begin() ; 
-		i != dirGral[ext].attributes.end(); 
-		i++){
-		if(i->second.att_vis != PRIVATE){
-		tam++;
-		}
-		}
-		dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc, tam)));
+		dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc)));
 		}else{
 		cout << "CLASS PREVIOUSLY DECLARED!\n";
 		}
@@ -168,13 +160,12 @@ void Parser::Arr2() {
 		cout << "VARIABLE IS NOT AN ARRAY!\n";	
 		err = true;
 		}
-		oper.push(99);
+		oper.push(PAR);
 		ExpOY();
-		if(oper.top() == 99){
+		if(oper.top() == PAR){
 		oper.pop();
 		}
 		if(!operandos.empty()){
-		
 		q = operandos.top();
 		operandos.pop();
 		if(q.var_type == INT){
@@ -988,44 +979,24 @@ void Parser::Decl() {
 }
 
 void Parser::New() {
-		string classN, idName, consN = ""; int mem = 0;
+		string nameL; 
 		Expect(_idO);
-		classN = conv(t->val);
 		Expect(_idV);
-		idName = conv(t->val);
-		if((dirGral.find(classN) != dirGral.end()) && (dirProc[name].vars.find(idName) == dirProc[name].vars.end())){
-		mem = bmo + mo;
-		mo = mo + dirGral[classN].tamanio;
-		dirProc[name].vars.insert(VMAP::value_type(idName, Variable(4, 0, mem)));
+		nameL = conv(t->val);
+		if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+		dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(4, 0, lcb)));
 		} else {
-		cout << "PREVIOUSLY DECLARED VARIABLE: " << idName << '\n';
+		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
 		err = TRUE;
 		}
+		
 		Expect(37 /* "=" */);
 		Expect(_tNew);
 		Expect(_idC);
-		consN = conv(t->val);
-		if(dirGral[classN].attributes.find(consN) == dirGral[classN].attributes.end()){
-		cout << "UNDECLARED CONSTRUCTOR: " << consN << '\n';
-		err = TRUE;
-		}
-		gen.push_back(Cuadruplo(ERA, dirGral[classN].attributes[consN].dirMem, -1, -1));
 		Expect(38 /* "(" */);
 		if (StartOf(6)) {
 			Lista();
 		}
-		if(t_params.size() == dirGral[classN].attributes[consN].params.size()){
-		for(int i = 0; i < dirGral[classN].attributes[consN].params.size(); i++){
-		if (t_params.at(i).var_type != dirGral[classN].attributes[consN].params.at(i)){
-		cout << "PARAMETER TYPES MISMATCH.\n";
-		i = dirGral[classN].attributes[consN].params.size();
-		}
-		gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , i+1));
-		}
-		}else{
-		cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
-		}
-		t_params.clear();
 		Expect(39 /* ")" */);
 }
 
@@ -1430,10 +1401,8 @@ void Parser::Factor() {
 		if (la->kind == 45 /* "-" */ || la->kind == 50 /* "~" */) {
 			if (la->kind == 50 /* "~" */) {
 				Get();
-				oper.push(NOT);
 			} else {
 				Get();
-				oper.push(NOT);
 			}
 		}
 		if (la->kind == 38 /* "(" */) {
@@ -1442,41 +1411,6 @@ void Parser::Factor() {
 			ExpOY();
 			Expect(39 /* ")" */);
 			oper.pop();
-			int mem = 0;
-			CVariable o;
-			if(!oper.empty() && (oper.top() == NOT)){
-			o = operandos.top();
-			operandos.pop();
-			oper.pop();
-			switch (o.var_type){
-			case INT:	mem = bti + ti;
-			if(mem > lti){
-			cout << "OUT OF MEMORY!\n";
-			err = true;
-			}
-			ti++;
-			break;
-			case DOUBLE:	mem = btd + td;
-			if(mem > ltd){
-			cout << "OUT OF MEMORY!\n";
-			err = true;
-			}
-			td++;
-			break;
-			case BOOLEAN:	mem = btb + tb;
-			if(mem > ltb){
-			cout << "OUT OF MEMORY!\n";
-			err = true;
-			}
-			tb++;
-			break;
-			}
-			gen.push_back(Cuadruplo(NOT, 
-			o.dir, 
-			-1, 
-			mem));
-			operandos.push(CVariable("memoria", o.var_type, 0, mem));
-			}
 		} else if (la->kind == _idV) {
 			Get();
 			string temp = conv(t->val);
@@ -1501,81 +1435,11 @@ void Parser::Factor() {
 					Arr2();
 				}
 			}
-			int mem = 0;
-			CVariable o;
-			if(!oper.empty() && (oper.top() == NOT)){
-			o = operandos.top();
-			operandos.pop();
-			oper.pop();
-			switch (o.var_type){
-			case INT:	mem = bti + ti;
-			if(mem > lti){
-			cout << "OUT OF MEMORY!\n";
-			err = true;
-			}
-			ti++;
-			break;
-			case DOUBLE:	mem = btd + td;
-			if(mem > ltd){
-			cout << "OUT OF MEMORY!\n";
-			err = true;
-			}
-			td++;
-			break;
-			case BOOLEAN:	mem = btb + tb;
-			if(mem > ltb){
-			cout << "OUT OF MEMORY!\n";
-			err = true;
-			}
-			tb++;
-			break;
-			}
-			gen.push_back(Cuadruplo(NOT, 
-			o.dir, 
-			-1, 
-			mem));
-			operandos.push(CVariable("memoria", o.var_type, 0, mem));
-			}
 		} else if (StartOf(5)) {
 			CTE();
 			string temp = conv(t->val);
 			operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));
 			
-			int mem = 0;
-			CVariable o;
-			if(!oper.empty() && (oper.top() == NOT)){
-			o = operandos.top();
-			operandos.pop();
-			oper.pop();
-			switch (o.var_type){
-			case INT:	mem = bti + ti;
-				if(mem > lti){
-					cout << "OUT OF MEMORY!\n";
-					err = true;
-				}
-				ti++;
-				break;
-			case DOUBLE:	mem = btd + td;
-				if(mem > ltd){
-					cout << "OUT OF MEMORY!\n";
-					err = true;
-				}
-				td++;
-				break;
-			case BOOLEAN:	mem = btb + tb;
-				if(mem > ltb){
-					cout << "OUT OF MEMORY!\n";
-					err = true;
-				}
-				tb++;
-				break;
-			}
-			gen.push_back(Cuadruplo(NOT, 
-					o.dir, 
-					-1, 
-					mem));
-			operandos.push(CVariable("memoria", o.var_type, 0, mem));
-			}
 		} else if (la->kind == _idM) {
 			Metodo();
 		} else SynErr(68);
