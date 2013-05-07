@@ -318,7 +318,7 @@ PRODUCTIONS
 					gts--;
 					}.).
 	
-	Constructor (.name = ""; vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	Constructor (.name = ""; type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 				= 	
 				idC (.name = conv(t->val);
 					if(className.compare(name.substr(1)) != 0){
@@ -893,7 +893,7 @@ PRODUCTIONS
 	Main = tMai (.name = conv(t->val);
 				if(dirProc.find(name) == dirProc.end()){
 					dirProc.insert(CTABLE::value_type(name, Attribute(3, MAIN, 0)));
-					vis = type = -1;
+					type = -1;
 				} else {
 					cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
 					err = TRUE;
@@ -935,7 +935,7 @@ PRODUCTIONS
 				(.gen.push_back(Cuadruplo(GSU, ttemp[name].dir, -1, -1));
 				operandos.push(CVariable(name, ttemp[name].att_type, 0, ttemp[name].dirMem));.).
 	
-	MetodoR 	(.vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	MetodoR 	(.type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	Tipo idM (.	name = conv(t->val);
 							int mem = 0;
 							switch (type){
@@ -980,7 +980,7 @@ PRODUCTIONS
 				'}' (. 	name = "";
 						gen.push_back(Cuadruplo(RET, -1, -1, -1));.).
 						
-	MetodoV 	(.vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
+	MetodoV 	(.type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	tVoi idM (.	name = conv(t->val);
 							if(dirProc.find(name) == dirProc.end()){
 								dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));

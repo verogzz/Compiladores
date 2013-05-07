@@ -11,7 +11,7 @@ using namespace std;
 
 int main (int argc, char *argv[]) {
 	if (argc == 2) {
-		string a = argv[1] + string("3.sol");
+		string a = argv[1] + string("3D.sol");
 		wchar_t *fileName = coco_string_create(&a[0]);
 		Scanner *scanner = new Scanner(fileName);	
 		Parser *parser = new Parser(scanner);

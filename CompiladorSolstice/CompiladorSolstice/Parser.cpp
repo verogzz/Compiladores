@@ -127,7 +127,7 @@ void Parser::Main() {
 		name = conv(t->val);
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(3, MAIN, 0)));
-		vis = type = -1;
+		type = -1;
 		} else {
 		cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
 		err = TRUE;
@@ -388,7 +388,7 @@ void Parser::Bloque() {
 }
 
 void Parser::Constructor() {
-		name = ""; vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
+		name = ""; type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
 		Expect(_idC);
 		name = conv(t->val);
 		if(className.compare(name.substr(1)) != 0){
@@ -415,7 +415,7 @@ void Parser::Constructor() {
 }
 
 void Parser::MetodoR() {
-		vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
+		type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
 		Tipo();
 		Expect(_idM);
 		name = conv(t->val);
@@ -476,7 +476,7 @@ void Parser::MetodoR() {
 }
 
 void Parser::MetodoV() {
-		vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
+		type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;
 		Expect(_tVoi);
 		Expect(_idM);
 		name = conv(t->val);
