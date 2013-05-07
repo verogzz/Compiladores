@@ -869,10 +869,12 @@ PRODUCTIONS
 							o1.name = temp;
 							o1.var_dim = 0;
 							o1.var_type = dirProc[name].vars.find(temp)->second.var_type;
+							o1.dir = dirProc[name].vars.find(temp)->second.dir;
 						}else if(dirProc.find(temp) != dirProc.end()){
 							o1.name = temp;
 							o1.var_dim = 0;
 							o1.var_type = dirProc.find(temp)->second.att_type;
+							o1.dir = o1.dir = dirProc.find(temp)->second.dir;
 						}else {
 							cout << "UNDECLARED VARIABLE: " << temp << '\n';
 							err = TRUE;
@@ -930,7 +932,8 @@ PRODUCTIONS
 							}
 							t_params.clear();.)
 				')'
-				(.gen.push_back(Cuadruplo(GSU, ttemp[name].dir, -1, -1));.).
+				(.gen.push_back(Cuadruplo(GSU, ttemp[name].dir, -1, -1));
+				operandos.push(CVariable(name, dirGral[objType].attributes[name].att_type, 0, dirGral[objType].attributes[name].dirMem));.).
 	
 	MetodoR 	(.vis = type = -1; li = ld = lb = ls = ti = td = tb = ts = 0;.)
 			= 	Tipo idM (.	name = conv(t->val);

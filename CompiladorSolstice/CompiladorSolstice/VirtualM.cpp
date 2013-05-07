@@ -122,11 +122,11 @@ int VirtualM::mvalue_type(int dir, int mt){
 void VirtualM::run(){
 	for(cIt = 0; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
-		cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+		//cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
 	}
 	for(cIt = prog.at(0).op1; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
-		//cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+		cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
 		switch (current.operador) {
 		case SUM : sum(); break;
 		case SUB : substration(); break;
@@ -156,7 +156,7 @@ void VirtualM::run(){
 		case VER : limits_array(); break;
 		case ACC : access();break;
 		case NOT: negation(); break;
-		case END: exit(1);
+		case END: exit(0);
 		default:
 			error(99);
 			break;
@@ -2828,8 +2828,8 @@ void VirtualM::write(){
 }
 
 void VirtualM::era(){
-	tLocal.~Memoria();
-	tTemp.~Memoria();
+	tLocal = Memoria();
+	tTemp = Memoria();
 }
 
 void VirtualM::go_sub(){
@@ -2838,7 +2838,7 @@ void VirtualM::go_sub(){
 	m_local = tLocal;
 	m_temporal = tTemp;
 	slines.push(cIt);
-	cIt = current.op1;
+	cIt = current.op1 - 1;
 }
 
 void VirtualM::end_module(){
@@ -3045,13 +3045,13 @@ void VirtualM::parameter(){
 	switch (memory_type(current.res)){
 	case TEMPORAL: 
 		switch(mvalue_type(current.res, TEMPORAL)){
-		case INT: m_temporal.m_i[current.res] = od1;
+		case INT: tTemp.m_i[current.res] = od1;
 			break;
-		case DOUBLE: m_temporal.m_d[current.res] = od1;
+		case DOUBLE: tTemp.m_d[current.res] = od1;
 			break;
-		case STRING: m_temporal.m_s[current.res] = os1;
+		case STRING: tTemp.m_s[current.res] = os1;
 			break;
-		case BOOLEAN: m_temporal.m_b[current.res] = ob1;
+		case BOOLEAN: tTemp.m_b[current.res] = ob1;
 			break;
 		case ERROR:
 		default:
@@ -3061,13 +3061,13 @@ void VirtualM::parameter(){
 		break;
 	case LOCAL: 
 		switch(mvalue_type(current.res, LOCAL)){
-		case INT: m_local.m_i[current.res] = od1;
+		case INT: tLocal.m_i[current.res] = od1;
 			break;
-		case DOUBLE: m_local.m_d[current.res] = od1;
+		case DOUBLE: tLocal.m_d[current.res] = od1;
 			break;
-		case STRING: m_local.m_s[current.res] = os1;
+		case STRING: tLocal.m_s[current.res] = os1;
 			break;
-		case BOOLEAN: m_local.m_b[current.res] = ob1;
+		case BOOLEAN: tLocal.m_b[current.res] = ob1;
 			break;
 		case ERROR:
 		default:
