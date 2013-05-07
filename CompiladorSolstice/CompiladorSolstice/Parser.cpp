@@ -1136,7 +1136,7 @@ void Parser::Metodo() {
 		t_params.clear();
 		Expect(39 /* ")" */);
 		gen.push_back(Cuadruplo(GSU, ttemp[name].dir, -1, -1));
-		operandos.push(CVariable(name, dirGral[objType].attributes[name].att_type, 0, dirGral[objType].attributes[name].dirMem));
+		operandos.push(CVariable(name, ttemp[name].att_type, 0, ttemp[name].dirMem));
 }
 
 void Parser::Lec() {
