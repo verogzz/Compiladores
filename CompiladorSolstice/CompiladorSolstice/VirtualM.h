@@ -71,6 +71,14 @@ private:
 	stack<Memoria> sLocal;
 	Memoria tTemp;
 	Memoria tLocal;
+	int cmli;
+	int cmld;
+	int cmls;
+	int cmlb;
+	int cmti;
+	int cmtd;
+	int cmts;
+	int cmtb;
 	string strClean(string s);
 	string ftoa(float f);
 	string btoa(bool b);

@@ -4,19 +4,19 @@ VirtualM::VirtualM(){}
 
 VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 	prog = p;
-
+	cmlb = cmld = cmli = cmls = cmtb = cmtd = cmti = cmts = 0;
 	for(TABLE::iterator iG = dirGral.begin(); iG != dirGral.end(); iG++){
 		for(CTABLE::iterator iC = iG->second.attributes.begin(); iC != iG->second.attributes.end(); iC++){
 			if(iC->second.att_mtd == MET){
 				switch (iC->second.att_type){
 				case INT:	m_global.m_i[iC->second.dirMem] = -1; 
-							break;
+					break;
 				case DOUBLE:	m_global.m_d[iC->second.dirMem] = -1.0; 
-								break;
+					break;
 				case STRING:	m_global.m_s[iC->second.dirMem] = "";
-								break;
+					break;
 				case BOOLEAN:	m_global.m_b[iC->second.dirMem] = NULL;
-								break;
+					break;
 				default:
 					break;
 				}
@@ -27,13 +27,13 @@ VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 	for(CTS::iterator it = ctes.begin(); it != ctes.end(); it++){
 		switch (it->second.type) {
 		case INT:	m_constante.m_i[it->second.dir] = atoi(&(it->first)[0]); 
-					break;
+			break;
 		case DOUBLE:	m_constante.m_d[it->second.dir] = atof(&(it->first)[0]); 
-						break;
+			break;
 		case STRING:	m_constante.m_s[it->second.dir] = strClean(it->first);
-						break;
+			break;
 		case BOOLEAN:	if(it->first.compare("true") == 0){
-							m_constante.m_b[it->second.dir] = true;
+			m_constante.m_b[it->second.dir] = true;
 						}else{
 							m_constante.m_b[it->second.dir] = false;
 						}
@@ -45,6 +45,10 @@ VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 }
 
 int VirtualM::memory_type(int dir){
+	if(cmli > 2000 || cmld > 2000 || cmls > 2000 || cmlb > 200 ||
+		cmti > 2000 || cmtd > 2000 || cmts > 2000 || cmtb > 200){
+			error(0);
+	}
 	if(dir >= bgi && dir < bli){
 		return GLOBAL;
 	}else if(dir >= bli && dir < bti){
@@ -65,19 +69,19 @@ int VirtualM::memory_type(int dir){
 int VirtualM::mvalue_type(int dir, int mt){
 	switch (mt)	{
 	case GLOBAL: if(dir >= bgi && dir < bgd){
-					return INT;
-				}else if(dir >= bgd && dir < bgs){
-					return DOUBLE;
-				}else if(dir >= bgs && dir < bgb){
-					return STRING;
-				}else if(dir >= bgb && dir <= lgb){
-					return BOOLEAN;
-				}else{
-					return ERROR;
-				}
-				break;
+		return INT;
+				 }else if(dir >= bgd && dir < bgs){
+					 return DOUBLE;
+				 }else if(dir >= bgs && dir < bgb){
+					 return STRING;
+				 }else if(dir >= bgb && dir <= lgb){
+					 return BOOLEAN;
+				 }else{
+					 return ERROR;
+				 }
+				 break;
 	case LOCAL: if(dir >= bli && dir < bld){
-					return INT;
+		return INT;
 				}else if(dir >= bld && dir < bls){
 					return DOUBLE;
 				}else if(dir >= bls && dir < blb){
@@ -89,29 +93,29 @@ int VirtualM::mvalue_type(int dir, int mt){
 				}
 				break;
 	case TEMPORAL: if(dir >= bti && dir < btd){
-					return INT;
-				}else if(dir >= btd && dir < bts){
-					return DOUBLE;
-				}else if(dir >= bts && dir < btb){
-					return STRING;
-				}else if(dir >= btb && dir <= ltb){
-					return BOOLEAN;
-				}else{
-					return ERROR;
-				}
-				break;
+		return INT;
+				   }else if(dir >= btd && dir < bts){
+					   return DOUBLE;
+				   }else if(dir >= bts && dir < btb){
+					   return STRING;
+				   }else if(dir >= btb && dir <= ltb){
+					   return BOOLEAN;
+				   }else{
+					   return ERROR;
+				   }
+				   break;
 	case CONSTANT: if(dir >= bci && dir < bcd){
-					return INT;
-				}else if(dir >= bcd && dir < bcs){
-					return DOUBLE;
-				}else if(dir >= bcs && dir < bcb){
-					return STRING;
-				}else if(dir >= bcb && dir <= lcb){
-					return BOOLEAN;
-				}else{
-					return ERROR;
-				}
-				break;
+		return INT;
+				   }else if(dir >= bcd && dir < bcs){
+					   return DOUBLE;
+				   }else if(dir >= bcs && dir < bcb){
+					   return STRING;
+				   }else if(dir >= bcb && dir <= lcb){
+					   return BOOLEAN;
+				   }else{
+					   return ERROR;
+				   }
+				   break;
 	case ERROR: 
 	default:
 		return ERROR;
@@ -126,7 +130,7 @@ void VirtualM::run(){
 	}
 	for(cIt = prog.at(0).op1; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
-		cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+		//cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
 		switch (current.operador) {
 		case SUM : sum(); break;
 		case SUB : substration(); break;
@@ -213,16 +217,16 @@ void VirtualM::sum(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -275,16 +279,16 @@ void VirtualM::sum(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -375,17 +379,17 @@ void VirtualM::substration(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
-		
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
+
 	case ERROR:
 	default:
 		error(0);
@@ -438,16 +442,16 @@ void VirtualM::substration(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -532,16 +536,16 @@ void VirtualM::multiplication(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -594,16 +598,16 @@ void VirtualM::multiplication(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -688,16 +692,16 @@ void VirtualM::division(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -750,16 +754,16 @@ void VirtualM::division(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -789,7 +793,7 @@ void VirtualM::division(){
 				error(1);
 				break;
 			}
-		break;
+			break;
 		default:
 			error(0);
 			break;
@@ -848,16 +852,16 @@ void VirtualM::module(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -910,16 +914,16 @@ void VirtualM::module(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -981,8 +985,8 @@ void VirtualM::and(){
 		switch(mvalue_type(current.op1, TEMPORAL)){
 		case BOOLEAN: o1 =m_temporal.m_b[current.op1];
 			break;
-	
-	default:
+
+		default:
 			error(1);
 			break;
 		}
@@ -997,14 +1001,14 @@ void VirtualM::and(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case BOOLEAN: o1 = m_local.m_b[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case BOOLEAN: o1 = m_local.m_b[p]; 
 			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1049,14 +1053,14 @@ void VirtualM::and(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case BOOLEAN: o2 = m_local.m_b[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case BOOLEAN: o2 = m_local.m_b[p]; 
 			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1129,14 +1133,14 @@ void VirtualM::or(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case BOOLEAN: o1 = m_local.m_b[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case BOOLEAN: o1 = m_local.m_b[p]; 
 			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1181,14 +1185,14 @@ void VirtualM::or(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case BOOLEAN: o2 = m_local.m_b[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case BOOLEAN: o2 = m_local.m_b[p]; 
 			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1269,16 +1273,16 @@ void VirtualM::less_than(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1331,16 +1335,16 @@ void VirtualM::less_than(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1421,16 +1425,16 @@ void VirtualM::greater_than(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1483,16 +1487,16 @@ void VirtualM::greater_than(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1526,13 +1530,24 @@ void VirtualM::greater_than(){
 
 void VirtualM::equal_equal(){
 	double o1, o2;
+	bool ob1, ob2;
+	string os1, os2;
 	int p = 0;
+	int t = -1;
 	switch (memory_type(current.op1)){
 	case GLOBAL: 
 		switch(mvalue_type(current.op1, GLOBAL)){
 		case INT: o1 = m_global.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_global.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_global.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_global.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1542,8 +1557,16 @@ void VirtualM::equal_equal(){
 	case LOCAL: 
 		switch(mvalue_type(current.op1, LOCAL)){
 		case INT: o1 = m_local.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_local.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_local.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_local.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1553,8 +1576,16 @@ void VirtualM::equal_equal(){
 	case TEMPORAL: 
 		switch(mvalue_type(current.op1, TEMPORAL)){
 		case INT: o1 =m_temporal.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_temporal.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_temporal.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1564,8 +1595,16 @@ void VirtualM::equal_equal(){
 	case CONSTANT: 
 		switch(mvalue_type(current.op1, CONSTANT)){
 		case INT: o1 = m_constante.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_constante.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_constante.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1573,16 +1612,24 @@ void VirtualM::equal_equal(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
+			t = 1;
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			t = 1;
+			break;
+		case STRING: os1 = m_local.m_s[p];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_local.m_b[p];
+			t = 3;
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1596,6 +1643,10 @@ void VirtualM::equal_equal(){
 			break;
 		case DOUBLE: o2 = m_global.m_d[current.op2];
 			break;
+		case STRING: os2 = m_global.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_global.m_b[current.op2];
+			break;
 		default:
 			error(1);
 			break;
@@ -1606,6 +1657,10 @@ void VirtualM::equal_equal(){
 		case INT: o2 = m_local.m_i[current.op2];
 			break;
 		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: os2 = m_local.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_local.m_b[current.op2];
 			break;
 		default:
 			error(1);
@@ -1618,6 +1673,10 @@ void VirtualM::equal_equal(){
 			break;
 		case DOUBLE: o2 = m_temporal.m_d[current.op2];
 			break;
+		case STRING: os2 = m_temporal.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_temporal.m_b[current.op2];
+			break;
 		default:
 			error(1);
 			break;
@@ -1629,32 +1688,49 @@ void VirtualM::equal_equal(){
 			break;
 		case DOUBLE: o2 = m_constante.m_d[current.op2];
 			break;
+		case STRING: os2 = m_constante.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_constante.m_b[current.op2];
+			break;
 		default:
 			error(1);
 			break;
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		case STRING: os2 = m_local.m_s[p];
+			break;
+		case BOOLEAN: ob2 = m_local.m_b[p];
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
 		break;
 	}
 
+	bool resB;
+	if(t == 1){
+		resB = (o1 == o2);
+	}else if(t == 2){
+		resB = (os1.compare(os2) == 0)? true : false ;
+	}else{
+		resB = (ob1 == ob2);
+	}
+
 	switch (memory_type(current.res)){
 	case TEMPORAL: 
 		switch(mvalue_type(current.res, TEMPORAL)){
-		case BOOLEAN: m_temporal.m_b[current.res] = (o1 == o2);
+		case BOOLEAN: m_temporal.m_b[current.res] = resB;
 			break;
 		default:
 			error(1);
@@ -1663,7 +1739,7 @@ void VirtualM::equal_equal(){
 		break;
 	case LOCAL: 
 		switch(mvalue_type(current.res, LOCAL)){
-		case BOOLEAN: m_local.m_b[current.res] = (o1 == o2);
+		case BOOLEAN: m_local.m_b[current.res] = resB;
 			break;
 		default:
 			error(1);
@@ -1677,14 +1753,25 @@ void VirtualM::equal_equal(){
 }
 
 void VirtualM::diference(){
-	double o1, o2;	
+	double o1, o2;
+	bool ob1, ob2;
+	string os1, os2;
 	int p = 0;
+	int t = -1;
 	switch (memory_type(current.op1)){
 	case GLOBAL: 
 		switch(mvalue_type(current.op1, GLOBAL)){
 		case INT: o1 = m_global.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_global.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_global.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_global.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1694,8 +1781,16 @@ void VirtualM::diference(){
 	case LOCAL: 
 		switch(mvalue_type(current.op1, LOCAL)){
 		case INT: o1 = m_local.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_local.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_local.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_local.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1705,8 +1800,16 @@ void VirtualM::diference(){
 	case TEMPORAL: 
 		switch(mvalue_type(current.op1, TEMPORAL)){
 		case INT: o1 =m_temporal.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_temporal.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_temporal.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_temporal.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
@@ -1716,25 +1819,41 @@ void VirtualM::diference(){
 	case CONSTANT: 
 		switch(mvalue_type(current.op1, CONSTANT)){
 		case INT: o1 = m_constante.m_i[current.op1];
+			t = 1;
 			break;
 		case DOUBLE: o1 = m_constante.m_d[current.op1];
+			t = 1;
+			break;
+		case STRING: os1 = m_constante.m_s[current.op1];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_constante.m_b[current.op1];
+			t = 3;
 			break;
 		default:
 			error(1);
 			break;
 		}
 		break;
-		case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+	case POINTER: p = m_pointer[current.op1];
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
+			t = 1;
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			t = 1;
+			break;
+		case STRING: os1 = m_local.m_s[p];
+			t = 2;
+			break;
+		case BOOLEAN: ob1 = m_local.m_b[p];
+			t = 3;
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1748,6 +1867,10 @@ void VirtualM::diference(){
 			break;
 		case DOUBLE: o2 = m_global.m_d[current.op2];
 			break;
+		case STRING: os2 = m_global.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_global.m_b[current.op2];
+			break;
 		default:
 			error(1);
 			break;
@@ -1758,6 +1881,10 @@ void VirtualM::diference(){
 		case INT: o2 = m_local.m_i[current.op2];
 			break;
 		case DOUBLE: o2 = m_local.m_d[current.op2];
+			break;
+		case STRING: os2 = m_local.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_local.m_b[current.op2];
 			break;
 		default:
 			error(1);
@@ -1770,6 +1897,10 @@ void VirtualM::diference(){
 			break;
 		case DOUBLE: o2 = m_temporal.m_d[current.op2];
 			break;
+		case STRING: os2 = m_temporal.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_temporal.m_b[current.op2];
+			break;
 		default:
 			error(1);
 			break;
@@ -1781,32 +1912,49 @@ void VirtualM::diference(){
 			break;
 		case DOUBLE: o2 = m_constante.m_d[current.op2];
 			break;
+		case STRING: os2 = m_constante.m_s[current.op2];
+			break;
+		case BOOLEAN: ob2 = m_constante.m_b[current.op2];
+			break;
 		default:
 			error(1);
 			break;
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		case STRING: os2 = m_local.m_s[p];
+			break;
+		case BOOLEAN: ob2 = m_local.m_b[p];
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
 		break;
 	}
 
+	bool resB;
+	if(t == 1){
+		resB = (o1 != o2);
+	}else if(t == 2){
+		resB = (os1.compare(os2) != 0)? true : false ;
+	}else{
+		resB = (ob1 != ob2);
+	}
+
 	switch (memory_type(current.res)){
 	case TEMPORAL: 
 		switch(mvalue_type(current.res, TEMPORAL)){
-		case BOOLEAN: m_temporal.m_b[current.res] = o1 != o2;
+		case BOOLEAN: m_temporal.m_b[current.res] = resB;
 			break;
 		default:
 			error(1);
@@ -1815,7 +1963,7 @@ void VirtualM::diference(){
 		break;
 	case LOCAL: 
 		switch(mvalue_type(current.res, LOCAL)){
-		case BOOLEAN: m_local.m_b[current.res] = o1 != o2;
+		case BOOLEAN: m_local.m_b[current.res] = resB;
 			break;
 		default:
 			error(1);
@@ -1877,16 +2025,16 @@ void VirtualM::greater_equal(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -1939,16 +2087,16 @@ void VirtualM::greater_equal(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2029,16 +2177,16 @@ void VirtualM::less_equal(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2091,16 +2239,16 @@ void VirtualM::less_equal(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o2 = m_local.m_d[p]; 
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o2 = m_local.m_d[p]; 
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2201,20 +2349,20 @@ void VirtualM::append(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = ftoa(m_local.m_i[p]); 
-				break;
-			case DOUBLE: o1 = ftoa(m_local.m_d[p]); 
-				break;
-			case STRING: o1 = m_local.m_s[p];
-				break;
-			case BOOLEAN: o1 = btoa(m_local.m_b[p]);
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = ftoa(m_local.m_i[p]); 
 			break;
+		case DOUBLE: o1 = ftoa(m_local.m_d[p]); 
+			break;
+		case STRING: o1 = m_local.m_s[p];
+			break;
+		case BOOLEAN: o1 = btoa(m_local.m_b[p]);
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2287,20 +2435,20 @@ void VirtualM::append(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op2];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o2 = ftoa(m_local.m_i[p]); 
-				break;
-			case DOUBLE: o2 = ftoa(m_local.m_d[p]); 
-				break;
-			case STRING: o2 = m_local.m_s[p];
-				break;
-			case BOOLEAN: o2 = btoa(m_local.m_b[p]);
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o2 = ftoa(m_local.m_i[p]); 
 			break;
+		case DOUBLE: o2 = ftoa(m_local.m_d[p]); 
+			break;
+		case STRING: o2 = m_local.m_s[p];
+			break;
+		case BOOLEAN: o2 = btoa(m_local.m_b[p]);
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2406,20 +2554,20 @@ void VirtualM::asign(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: od1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: od1 = m_local.m_d[p]; 
-				break;
-			case STRING: os1 = m_local.m_s[p];
-				break;
-			case BOOLEAN: ob1 = m_local.m_b[p];
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: od1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: od1 = m_local.m_d[p]; 
+			break;
+		case STRING: os1 = m_local.m_s[p];
+			break;
+		case BOOLEAN: ob1 = m_local.m_b[p];
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2492,21 +2640,21 @@ void VirtualM::asign(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.res];
-			switch(mvalue_type(p, LOCAL)){
-			case INT: m_local.m_i[p] = od1;
-				break;
-			case DOUBLE: m_local.m_d[p] = od1;
-				break;
-			case STRING: m_local.m_s[p] = os1;
-				break;
-			case BOOLEAN: m_local.m_b[p] = ob1;
-				break;
-			case ERROR:
-			default:
-				error(1);
-				break;
-			}
+		switch(mvalue_type(p, LOCAL)){
+		case INT: m_local.m_i[p] = od1;
 			break;
+		case DOUBLE: m_local.m_d[p] = od1;
+			break;
+		case STRING: m_local.m_s[p] = os1;
+			break;
+		case BOOLEAN: m_local.m_b[p] = ob1;
+			break;
+		case ERROR:
+		default:
+			error(1);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2805,20 +2953,20 @@ void VirtualM::write(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = ftoa(m_local.m_i[p]); 
-				break;
-			case DOUBLE: o1 = ftoa(m_local.m_d[p]); 
-				break;
-			case STRING: o1 = m_local.m_s[p];
-				break;
-			case BOOLEAN: o1 = btoa(m_local.m_b[p]);
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = ftoa(m_local.m_i[p]); 
 			break;
+		case DOUBLE: o1 = ftoa(m_local.m_d[p]); 
+			break;
+		case STRING: o1 = m_local.m_s[p];
+			break;
+		case BOOLEAN: o1 = btoa(m_local.m_b[p]);
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);
@@ -2830,6 +2978,14 @@ void VirtualM::write(){
 void VirtualM::era(){
 	tLocal = Memoria();
 	tTemp = Memoria();
+	cmli += m_local.m_i.size();
+	cmld += m_local.m_d.size();
+	cmls += m_local.m_s.size();
+	cmlb += m_local.m_b.size();
+	cmti += m_temporal.m_i.size();
+	cmtd += m_temporal.m_d.size();
+	cmts += m_temporal.m_s.size();
+	cmtb += m_temporal.m_b.size();	
 }
 
 void VirtualM::go_sub(){
@@ -2843,6 +2999,10 @@ void VirtualM::go_sub(){
 
 void VirtualM::end_module(){
 	if(sLocal.size() > 0) {
+		cmli += m_local.m_i.size();
+		cmld += m_local.m_d.size();
+		cmls += m_local.m_s.size();
+		cmlb += m_local.m_b.size();
 		m_local = sLocal.top();
 		sLocal.pop();
 	}else{
@@ -2850,6 +3010,10 @@ void VirtualM::end_module(){
 	}
 
 	if(sTemp.size() > 0) {
+		cmti += m_temporal.m_i.size();
+		cmtd += m_temporal.m_d.size();
+		cmts += m_temporal.m_s.size();
+		cmtb += m_temporal.m_b.size();
 		m_temporal = sTemp.top();
 		sTemp.pop();
 	}else{
@@ -3283,18 +3447,18 @@ void VirtualM::negation(){
 		}
 		break;
 	case POINTER: p = m_pointer[current.op1];
-			switch (mvalue_type(p, LOCAL)){
-			case INT: o1 = m_local.m_i[p]; 
-				break;
-			case DOUBLE: o1 = m_local.m_d[p]; 
-				break;
-			case BOOLEAN: o = m_local.m_b[p];
-				break;
-			default:
-				error(5);
-				break;
-			}
+		switch (mvalue_type(p, LOCAL)){
+		case INT: o1 = m_local.m_i[p]; 
 			break;
+		case DOUBLE: o1 = m_local.m_d[p]; 
+			break;
+		case BOOLEAN: o = m_local.m_b[p];
+			break;
+		default:
+			error(5);
+			break;
+		}
+		break;
 	case ERROR:
 	default:
 		error(0);

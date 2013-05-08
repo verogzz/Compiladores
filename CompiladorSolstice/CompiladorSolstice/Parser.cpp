@@ -96,7 +96,7 @@ void Parser::Class() {
 			}
 			}
 			}else{
-			cout << "PARENT CLASS NOT DECLARED!\n";
+			cout << "Paren class not declared.\n";
 			err = true;
 			}
 		}
@@ -115,7 +115,7 @@ void Parser::Class() {
 		dirGral.insert(TABLE::value_type(className, ClassStruct(ext, dirProc, tam, classCount)));
 		classCount++;
 		}else{
-		cout << "CLASS PREVIOUSLY DECLARED!\n";
+		cout << "Class previously declared.\n";
 		}
 		if (la->kind == _tCla) {
 			Class();
@@ -129,7 +129,7 @@ void Parser::Main() {
 		dirProc.insert(CTABLE::value_type(name, Attribute(3, MAIN, 0)));
 		type = -1;
 		} else {
-		cout << "CANNOT DECLARE MORE THAN ONE MAIN." << '\n';
+		cout << "Cannot declare more tha one main.\n";
 		err = TRUE;
 		}
 		Expect(38 /* "(" */);
@@ -155,7 +155,7 @@ void Parser::Arr() {
 		Expect(_cteI);
 		dim = atoi(&conv(t->val)[0]);
 		if(dim < 2){
-		cout << "ARRAY SIZE MUST BE GREATER THAN ONE!\n";
+		cout << "Array size must be greater than one.\n";
 		}
 		Expect(35 /* "]" */);
 }
@@ -166,7 +166,7 @@ void Parser::Arr2() {
 		operandos.pop();
 		CVariable q;
 		if(o.var_dim < 1){
-		cout << "VARIABLE IS NOT AN ARRAY!\n";	
+		cout << "Variable is not an array.\n";	
 		err = true;
 		}
 		oper.push(99);
@@ -181,18 +181,18 @@ void Parser::Arr2() {
 		gen.push_back(Cuadruplo(VER, q.dir, -1, o.var_dim));
 		int mem = btp + tp;
 		if(mem > ltp){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		tp++;
 		gen.push_back(Cuadruplo(ACC, q.dir, o.dir, mem));
 		operandos.push(CVariable(o.name, o.var_type, 0, mem));
 		}else{
-		cout << "EXPRESSION MUST BE INT TYPE!\n";	
+		cout << "Expression must be int type.\n";	
 		err = true;
 		}
 		}else{
-		cout << "ERROR!\n";	
+		cout << "Unexpected error.\n";	
 		err = true;
 		}
 		Expect(35 /* "]" */);
@@ -215,15 +215,15 @@ void Parser::ExpOY() {
 			o1.var_dim == o2.var_dim){
 			mem = btb + tb;
 			if(mem > ltb){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			tb++;
 			gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 			operandos.push(CVariable("memoria",c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-			availNum++;
+			;
 			} else {
-			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
 			}
@@ -249,29 +249,29 @@ void Parser::ExpOY() {
 		o1.var_dim == o2.var_dim){
 		mem = btb + tb;
 		if(mem > ltb){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		tb++;
 		gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 		operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-		availNum++;
+		;
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 		err = TRUE;
 		}
 		}
 }
 
 void Parser::Asig() {
-		if (la->kind == _tInc || la->kind == _tDec || la->kind == 37 /* "=" */) {
+		if (la->kind == _tInc || la->kind == _tDec || la->kind == 36 /* "=" */) {
 			if (la->kind == _tInc) {
 				Get();
 				if(operandos.top().var_type == INT && operandos.top().var_dim < 2){
 				gen.push_back(Cuadruplo(SUM, operandos.top().dir, cts["1"].dir , operandos.top().dir));
 				operandos.pop();
 				} else {
-				cout << "TYPE MISMATCH! :" << operandos.top().name << '\n';
+				cout << "Type mismatch :" << operandos.top().name << '\n';
 				operandos.pop();
 				err = TRUE;
 				}
@@ -281,7 +281,7 @@ void Parser::Asig() {
 				gen.push_back(Cuadruplo(SUB, operandos.top().dir, cts["1"].dir , operandos.top().dir));
 				operandos.pop();
 				} else {
-				cout << "TYPE MISMATCH! :" << operandos.top().name << '\n';
+				cout << "Type mismatch :" << operandos.top().name << '\n';
 				operandos.pop();
 				err = TRUE;
 				}
@@ -292,11 +292,10 @@ void Parser::Asig() {
 			Arr2();
 			Asig2();
 		} else SynErr(56);
-		Expect(36 /* ";" */);
 }
 
 void Parser::Asig2() {
-		Expect(37 /* "=" */);
+		Expect(36 /* "=" */);
 		ExpOY();
 		CVariable q = operandos.top();
 		operandos.pop();
@@ -304,9 +303,15 @@ void Parser::Asig2() {
 		operandos.pop();
 		if(c.cubo[q.var_type][p.var_type][ASI] != -1 && 
 		p.var_dim == q.var_dim){
+		if(q.var_dim != 0){
+		for(int i = 0; i < p.var_dim; i++){
+		gen.push_back(Cuadruplo(ASI, q.dir + i, -1 , p.dir + i));
+		}
+		}else{
 		gen.push_back(Cuadruplo(ASI, q.dir, -1 , p.dir));
+		}
 		} else {
-		cout << "TYPE MISMATCH! :" << p.name << '\t' << q.name << '\n';
+		cout << "Type mismatch :" << p.name << '\t' << q.name << '\n';
 		err = TRUE;
 		}
 }
@@ -335,11 +340,11 @@ void Parser::Atributo() {
 		}
 		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 0, mem)));
 		} else {
-		cout << "PREVIOUSLY DECLARED ATTRIBUTE: " << name << '\n';
+		cout << "Previously declared attribute: " << name << '\n';
 		err = TRUE;
 		}
 		
-		Expect(36 /* ";" */);
+		Expect(37 /* ";" */);
 }
 
 void Parser::Vis() {
@@ -398,18 +403,12 @@ void Parser::Constructor() {
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(PUBLIC, OBJECT, 1, gen.size(), 10000)));
 		} else {
-		cout << "CANNOT DECLARE MORE THAN ONE CONSTRUCTOR." << '\n';
+		cout << "Cannot declare more than one constructor.\n";
 		err = TRUE;
 		}
 		Expect(38 /* "(" */);
-		if (StartOf(3)) {
-			Param();
-		}
 		Expect(39 /* ")" */);
 		Expect(40 /* "{" */);
-		while (la->kind == _idV) {
-			Init();
-		}
 		Expect(41 /* "}" */);
 		gen.push_back(Cuadruplo(RET, -1, -1, -1));
 }
@@ -423,28 +422,28 @@ void Parser::MetodoR() {
 		switch (type){
 		case INT:	mem = bgi + gi;
 		if(mem > lgi){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		gi++;
 		break;
 		case DOUBLE:	mem = bgd + gd;
 		if(mem > lgd){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		gd++;
 		break;
 		case STRING:	mem = bgs + gs;
 		if(mem > lgs){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		gs++;
 		break;
 		case BOOLEAN:	mem = bgb + gb;
 		if(mem > lgb){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		gb++;
@@ -453,7 +452,7 @@ void Parser::MetodoR() {
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(vis, type, 1, gen.size(), mem)));
 		} else {
-		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
+		cout << "Previously declared method: " << name << '\n';
 		err = TRUE;
 		}
 		
@@ -483,7 +482,7 @@ void Parser::MetodoV() {
 		if(dirProc.find(name) == dirProc.end()){
 		dirProc.insert(CTABLE::value_type(name, Attribute(vis, VOID, 1, gen.size())));
 		} else {
-		cout << "PREVIOUSLY DECLARED METHOD: " << name << '\n';
+		cout << "Previously declared method: " << name << '\n';
 		err = TRUE;
 		}
 		
@@ -513,7 +512,7 @@ void Parser::Ciclo() {
 		CVariable boolRes = operandos.top();
 		operandos.pop();
 		if(boolRes.var_type != BOOLEAN){
-		cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+		cout << "Expression must be boolean type.\n";
 		}else{
 		gen.push_back(Cuadruplo(GTF, boolRes.dir, -1 , -1));
 		saltos.push(gen.size() - 1);
@@ -534,54 +533,42 @@ void Parser::Ciclo() {
 
 void Parser::Estatuto() {
 		string temp = "";
-		switch (la->kind) {
-		case _idV: {
-			Get();
-			temp = conv(t->val); 
-			if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
-			operandos.push(CVariable(temp, 
-			dirProc[name].vars[temp].var_type,
-			dirProc[name].vars[temp].var_dim,
-			dirProc[name].vars[temp].dir));
-			}else if(dirProc.find(temp) != dirProc.end()){
-			operandos.push(CVariable(temp, 
-			dirProc[temp].att_type,
-			0,
-			dirProc[temp].dir));
-			}else {
-			cout << "UNDECLARED VARIABLE: " << temp << '\n';
-			err = TRUE;
+		if (StartOf(4)) {
+			if (la->kind == _idV) {
+				Get();
+				temp = conv(t->val); 
+				if (dirProc[name].vars.find(temp) != dirProc[name].vars.end()){
+				operandos.push(CVariable(temp, 
+				dirProc[name].vars[temp].var_type,
+				dirProc[name].vars[temp].var_dim,
+				dirProc[name].vars[temp].dir));
+				}else if(dirProc.find(temp) != dirProc.end()){
+				operandos.push(CVariable(temp, 
+				dirProc[temp].att_type,
+				0,
+				dirProc[temp].dir));
+				}else {
+				cout << "Undeclared Variable: " << temp << '\n';
+				err = TRUE;
+				}
+				if (StartOf(5)) {
+					Asig();
+				} else if (la->kind == 51 /* "." */) {
+					Llamada();
+				} else SynErr(60);
+			} else if (la->kind == _idM) {
+				Metodo();
+			} else if (la->kind == _tEsc) {
+				Esc();
+			} else {
+				Lec();
 			}
-			if (StartOf(4)) {
-				Asig();
-			} else if (la->kind == 51 /* "." */) {
-				Llamada();
-			} else SynErr(60);
-			break;
-		}
-		case _idM: {
-			Metodo();
-			Expect(36 /* ";" */);
-			break;
-		}
-		case _tWhi: {
+			Expect(37 /* ";" */);
+		} else if (la->kind == _tWhi) {
 			Ciclo();
-			break;
-		}
-		case _tEsc: {
-			Esc();
-			break;
-		}
-		case _tLec: {
-			Lec();
-			break;
-		}
-		case _tCon: {
+		} else if (la->kind == _tCon) {
 			ConG();
-			break;
-		}
-		default: SynErr(61); break;
-		}
+		} else SynErr(61);
 }
 
 void Parser::Con() {
@@ -593,7 +580,7 @@ void Parser::Con() {
 		CVariable boolRes = operandos.top();
 		operandos.pop();
 		if(boolRes.var_type != BOOLEAN){
-		cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+		cout << "Expression must be boolean type.\n";
 		}else{
 		gen.push_back(Cuadruplo(GTF, boolRes.dir, -1 , -1));
 		saltos.push(gen.size() - 1);
@@ -618,7 +605,7 @@ void Parser::Con() {
 			CVariable boolRes = operandos.top();
 			operandos.pop();
 			if(boolRes.var_type != BOOLEAN){
-			cout << "EXPRESSION MUST BE BOOL TYPE!\n";
+			cout << "Expression must be boolean type.\n";
 			}else{
 			gen.push_back(Cuadruplo(GTF, boolRes.dir, -1, -1));
 			saltos.push(gen.size() - 1);
@@ -667,84 +654,6 @@ void Parser::ConG() {
 		}
 }
 
-void Parser::Param() {
-		string nameL; 
-		Tipo();
-		Expect(_idV);
-		nameL = conv(t->val);
-		if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
-		int mem = 0;
-		switch (type){
-		case INT:	mem = bli + li;
-		if(mem > lli){
-		cout << "OUT OF MEMORY!\n";
-		err = true;
-		}
-		li++;
-		break;
-		case DOUBLE:	mem = bld + ld;
-		if(mem > lld){
-		cout << "OUT OF MEMORY!\n";
-		err = true;
-		}
-		ld++;
-		break;
-		case STRING:	mem = bls + ls;
-		if(mem > lls){
-		cout << "OUT OF MEMORY!\n";
-		err = true;
-		}
-		ls++;
-		break;
-		case BOOLEAN:	mem = blb + lb;
-		if(mem > llb){
-		cout << "OUT OF MEMORY!\n";
-		err = true;
-		}
-		lb++;
-		break;
-		}
-		dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0, mem)));
-		dirProc[name].params.push_back(Variable(type, 0, mem));
-		} else {
-		cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
-		err = TRUE;
-		}
-		
-		if (la->kind == 42 /* "," */) {
-			Get();
-			Param();
-		}
-}
-
-void Parser::Init() {
-		Expect(_idV);
-		string temp = conv(t->val); 
-		if(dirProc.find(temp) != dirProc.end()){
-		operandos.push(CVariable(temp, 
-		dirProc[temp].att_type, 
-		dirProc[temp].att_mtd, 
-		dirProc[temp].dir));
-		}else{
-		cout << "UNDECLARED VARIABLE: " << temp << '\n';
-		err = TRUE;
-		}
-		Expect(37 /* "=" */);
-		CTES();
-		CVariable o2 = operandos.top();
-		operandos.pop();
-		CVariable o1 = operandos.top();
-		operandos.pop();
-		if(c.cubo[o2.var_type][o1.var_type][ASI] != -1 && 
-		o1.var_dim == o2.var_dim){
-		gen.push_back(Cuadruplo(ASI,o2.dir, -1, o1.dir));
-		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
-		err = TRUE;
-		}
-		Expect(36 /* ";" */);
-}
-
 void Parser::CTE() {
 		ctype = -1;
 		if (la->kind == _cteS) {
@@ -766,28 +675,28 @@ void Parser::CTE() {
 		switch (ctype){
 		case INT:	mem = bci + ci;
 				if(mem > lci){
-					cout << "OUT OF MEMORY!\n";
+					cout << "Memory out of bounds.\n";
 					err = true;
 				}
 				ci++;
 				break;
 		case DOUBLE:	mem = bcd + cd;
 				if(mem > lcd){
-					cout << "OUT OF MEMORY!\n";
+					cout << "Memory out of bounds.\n";
 					err = true;
 				}
 				cd++;
 				break;
 		case STRING:	mem = bcs + cs;
 				if(mem > lcs){
-					cout << "OUT OF MEMORY!\n";
+					cout << "Memory out of bounds.\n";
 					err = true;
 				}
 				cs++;
 				break;
 		case BOOLEAN:	mem = bcb + cb;
 				if(mem > lcb){
-					cout << "OUT OF MEMORY!\n";
+					cout << "Memory out of bounds.\n";
 					err = true;
 				}
 				cb++;
@@ -813,10 +722,10 @@ void Parser::CTES() {
 			0,
 			dirProc[name].dir));
 			} else {
-			cout << "UNDECLARED VARIABLE." << '\n';
+			cout << "Undeclared variable.\n";
 			err = TRUE;
 			}
-		} else if (StartOf(5)) {
+		} else if (StartOf(6)) {
 			CTE();
 			temp = conv(t->val);
 			operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));
@@ -831,7 +740,7 @@ void Parser::Decl() {
 			Tipo();
 			Expect(_idV);
 			nameL = conv(t->val); int mem = 0;
-			if (la->kind == 37 /* "=" */) {
+			if (la->kind == 36 /* "=" */) {
 				Get();
 				CTES();
 			} else if (la->kind == 34 /* "[" */) {
@@ -841,7 +750,7 @@ void Parser::Decl() {
 			switch (type){
 			case INT:	mem = bli + li;
 			if(mem > lli){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			if(dim == 0){
@@ -852,7 +761,7 @@ void Parser::Decl() {
 			break;
 			case DOUBLE:	mem = bld + ld;
 			if(mem > lld){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			if(dim == 0){
@@ -863,7 +772,7 @@ void Parser::Decl() {
 			break;
 			case STRING:	mem = bls + ls;
 			if(mem > lls){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			if(dim == 0){
@@ -874,7 +783,7 @@ void Parser::Decl() {
 			break;
 			case BOOLEAN:	mem = blb + lb;
 			if(mem > llb){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			if(dim == 0){
@@ -886,7 +795,7 @@ void Parser::Decl() {
 			}
 			dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim, mem)));
 			} else {
-			cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+			cout << "Previously declared variable. " << nameL << '\n';
 			err = TRUE;
 			}
 			if(dim == 0){
@@ -894,7 +803,7 @@ void Parser::Decl() {
 			gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1, mem));
 			operandos.pop();
 			} else {
-			cout << "TYPE MISMATCH! :" << nameL << '\t' << operandos.top().name << '\n';
+			cout << "Type mismatch :" << nameL << '\t' << operandos.top().name << '\n';
 			operandos.pop();
 			err = TRUE;
 			}
@@ -903,7 +812,7 @@ void Parser::Decl() {
 				Get();
 				Expect(_idV);
 				nameL = conv(t->val); dim = 0; mem = 0;
-				if (la->kind == 37 /* "=" */) {
+				if (la->kind == 36 /* "=" */) {
 					Get();
 					CTES();
 				} else if (la->kind == 34 /* "[" */) {
@@ -913,7 +822,7 @@ void Parser::Decl() {
 				switch (type){
 				case INT:	mem = bli + li;
 				if(mem > lli){
-				cout << "OUT OF MEMORY!\n";
+				cout << "Memory out of bounds.\n";
 				err = true;
 				}
 				if(dim == 0){
@@ -924,7 +833,7 @@ void Parser::Decl() {
 				break;
 				case DOUBLE:	mem = bld + ld;
 				if(mem > lld){
-				cout << "OUT OF MEMORY!\n";
+				cout << "Memory out of bounds.\n";
 				err = true;
 				}
 				if(dim == 0){
@@ -935,7 +844,7 @@ void Parser::Decl() {
 				break;
 				case STRING:	mem = bls + ls;
 				if(mem > lls){
-				cout << "OUT OF MEMORY!\n";
+				cout << "Memory out of bounds.\n";
 				err = true;
 				}
 				if(dim == 0){
@@ -946,7 +855,7 @@ void Parser::Decl() {
 				break;
 				case BOOLEAN:	mem = blb + lb;
 				if(mem > llb){
-				cout << "OUT OF MEMORY!\n";
+				cout << "Memory out of bounds.\n";
 				err = true;
 				}
 				if(dim == 0){
@@ -958,7 +867,7 @@ void Parser::Decl() {
 				}
 				dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, dim, mem)));
 				} else {
-				cout << "PREVIOUSLY DECLARED VARIABLE: " << nameL << '\n';
+				cout << "Previously declared variable. " << nameL << '\n';
 				err = TRUE;
 				}
 				if(dim == 0){
@@ -966,14 +875,14 @@ void Parser::Decl() {
 				gen.push_back(Cuadruplo(ASI, operandos.top().dir, -1, mem));
 				operandos.pop();
 				} else {
-				cout << "TYPE MISMATCH! :" << nameL << '\t' << operandos.top().name << '\n';
+				cout << "Type mismatch :" << nameL << '\t' << operandos.top().name << '\n';
 				operandos.pop();
 				err = TRUE;
 				}
 				}
 			}
 		} else SynErr(66);
-		Expect(36 /* ";" */);
+		Expect(37 /* ";" */);
 }
 
 void Parser::New() {
@@ -987,32 +896,32 @@ void Parser::New() {
 		mo = mo + dirGral[classN].tamanio;
 		dirProc[name].vars.insert(VMAP::value_type(idName, Variable(OBJECT + dirGral[classN].serie, 0, mem)));
 		} else {
-		cout << "PREVIOUSLY DECLARED VARIABLE: " << idName << '\n';
+		cout << "Previously declared variable. " << idName << '\n';
 		err = TRUE;
 		}
-		Expect(37 /* "=" */);
+		Expect(36 /* "=" */);
 		Expect(_tNew);
 		Expect(_idC);
 		consN = conv(t->val);
 		if(dirGral[classN].attributes.find(consN) == dirGral[classN].attributes.end()){
-		cout << "UNDECLARED CONSTRUCTOR: " << consN << '\n';
+		cout << "Undeclared constructor: " << consN << '\n';
 		err = TRUE;
 		}
 		gen.push_back(Cuadruplo(ERA, dirGral[classN].attributes[consN].dir, -1, -1));
 		Expect(38 /* "(" */);
-		if (StartOf(6)) {
+		if (StartOf(7)) {
 			Lista();
 		}
 		if(t_params.size() == dirGral[classN].attributes[consN].params.size()){
 		for(int i = 0; i < dirGral[classN].attributes[consN].params.size(); i++){
 		if (t_params.at(i).var_type != dirGral[classN].attributes[consN].params.at(i).var_type){
-		cout << "PARAMETER TYPES MISMATCH.\n";
+		cout << "Parameter type mismatch.\n";
 		i = dirGral[classN].attributes[consN].params.size();
 		}
 		gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , dirGral[classN].attributes[consN].params.at(i).dir));
 		}
 		}else{
-		cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
+		cout << "There is no method with that amount of parameter.\n";
 		}
 		t_params.clear();
 		Expect(39 /* ")" */);
@@ -1034,15 +943,15 @@ void Parser::Esc() {
 			if(c.cubo[o1.var_type][o2.var_type][op] != -1 && o1.var_dim == o2.var_dim){
 			int mem = bts + ts;
 			if(mem > lts){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			ts++;
 			gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 			operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-			availNum++;
+			;
 			} else {
-			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
 			}
@@ -1060,15 +969,15 @@ void Parser::Esc() {
 		if(c.cubo[o1.var_type][o2.var_type][op] != -1 && o1.var_dim == o2.var_dim){
 		int mem = bts + ts;
 		if(mem > lts){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		ts++;
 		gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 		operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-		availNum++;
+		;
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 		err = TRUE;
 		}
 		}
@@ -1076,7 +985,6 @@ void Parser::Esc() {
 		CVariable strRes = operandos.top();
 		operandos.pop();
 		gen.push_back(Cuadruplo(WRI, strRes.dir, -1, -1));
-		Expect(36 /* ";" */);
 }
 
 void Parser::Llamada() {
@@ -1098,7 +1006,7 @@ void Parser::Llamada() {
 			if(dirGral[objType].attributes.find(att) != dirGral[objType].attributes.end()){
 			operandos.push(CVariable(att, dirGral[objType].attributes[att].att_type, 0, dirGral[objType].attributes[att].dir));
 			}else{
-			cout << "Attribute not declared!";
+			cout << "Attribute not declared";
 			err = true;
 			}
 		} else SynErr(67);
@@ -1115,23 +1023,24 @@ void Parser::Metodo() {
 		ttemp = dirGral[objType].attributes;
 		gen.push_back(Cuadruplo(ERA, ttemp[name].dir, -1, -1));
 		}else{
-		cout << "UNDECLARED METHOD: " << name << '\n';
+		cout << "Undeclared method: " << name << '\n';
 		err = TRUE;
 		}
 		Expect(38 /* "(" */);
-		if (StartOf(6)) {
+		if (StartOf(7)) {
 			Lista();
 		}
 		if(t_params.size() == ttemp[name].params.size()){
 		for(int i = 0; i < ttemp[name].params.size(); i++){
 		if (t_params.at(i).var_type != ttemp[name].params.at(i).var_type){
-		cout << "PARAMETER TYPES MISMATCH.\n";
+		cout << "Parameter type mismatch.\n";
 		i = ttemp[name].params.size();
 		}
 		gen.push_back(Cuadruplo(PAR, t_params.at(i).dir, -1 , ttemp[name].params.at(i).dir));
 		}
 		}else{
-		cout << "THERE IS NO METHOD WITH THAT AMOUNT OF PARAMETERS\n";
+		cout << "There is no method with that amount of parameter.\n";
+		err = true;
 		}
 		t_params.clear();
 		Expect(39 /* ")" */);
@@ -1155,7 +1064,7 @@ void Parser::Lec() {
 		o1.var_type = dirProc.find(temp)->second.att_type;
 		o1.dir = o1.dir = dirProc.find(temp)->second.dir;
 		}else {
-		cout << "UNDECLARED VARIABLE: " << temp << '\n';
+		cout << "Undeclared Variable: " << temp << '\n';
 		err = TRUE;
 		}
 		Expect(42 /* "," */);
@@ -1163,11 +1072,10 @@ void Parser::Lec() {
 		if(o1.var_type == type){
 		gen.push_back(Cuadruplo(REA, o1.dir, type, -1));
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\n';
+		cout << "Type mismatch :" << o1.name << '\n';
 		err = TRUE;
 		}
 		Expect(39 /* ")" */);
-		Expect(36 /* ";" */);
 }
 
 void Parser::Exp() {
@@ -1188,14 +1096,14 @@ void Parser::Exp() {
 			switch (c.cubo[o1.var_type][o2.var_type][op]){
 			case INT:	mem = bti + ti;
 			if(mem > lti){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			ti++;
 			break;
 			case DOUBLE:	mem = btd + td;
 			if(mem > ltd){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			td++;
@@ -1204,7 +1112,7 @@ void Parser::Exp() {
 			gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 			operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
 			} else {
-			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
 			}
@@ -1232,14 +1140,14 @@ void Parser::Exp() {
 		switch (c.cubo[o1.var_type][o2.var_type][op]){
 		case INT:	mem = bti + ti;
 				if(mem > lti){
-					cout << "OUT OF MEMORY!\n";
+					cout << "Memory out of bounds.\n";
 					err = true;
 				}
 				ti++;
 				break;
 		case DOUBLE:	mem = btd + td;
 				if(mem > ltd){
-					cout << "OUT OF MEMORY!\n";
+					cout << "Memory out of bounds.\n";
 					err = true;
 				}
 				td++;
@@ -1247,9 +1155,9 @@ void Parser::Exp() {
 		}
 		gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 		operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-		availNum++;
+		;
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 		err = TRUE;
 		}
 		}
@@ -1274,14 +1182,14 @@ void Parser::Termino() {
 			switch (c.cubo[o1.var_type][o2.var_type][op]){
 			case INT:	mem = bti + ti;
 			if(mem > lti){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			ti++;
 			break;
 			case DOUBLE:	mem = btd + td;
 			if(mem > ltd){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			td++;
@@ -1289,9 +1197,9 @@ void Parser::Termino() {
 			}
 			gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 			operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-			availNum++;
+			;
 			} else {
-			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
 			}
@@ -1324,14 +1232,14 @@ void Parser::Termino() {
 		switch (c.cubo[o1.var_type][o2.var_type][op]){
 		case INT:	mem = bti + ti;
 			if(mem > lti){
-				cout << "OUT OF MEMORY!\n";
+				cout << "Memory out of bounds.\n";
 				err = true;
 			}
 			ti++;
 			break;
 		case DOUBLE:	mem = btd + td;
 			if(mem > ltd){
-				cout << "OUT OF MEMORY!\n";
+				cout << "Memory out of bounds.\n";
 				err = true;
 			}
 			td++;
@@ -1339,9 +1247,9 @@ void Parser::Termino() {
 		}
 		gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 		operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-		availNum++;
+		 ;
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 		err = TRUE;
 		}
 		}
@@ -1350,7 +1258,7 @@ void Parser::Termino() {
 void Parser::Expresion() {
 		int mem = 0;
 		Exp();
-		if (StartOf(7)) {
+		if (StartOf(8)) {
 			if(!oper.empty() && (oper.top() == GEQ || 
 			oper.top() == LEQ || oper.top() == DIF ||
 			oper.top() == LT || oper.top() == GT ||
@@ -1366,15 +1274,15 @@ void Parser::Expresion() {
 			o1.var_dim == o2.var_dim){
 			mem = btb + tb;
 			if(mem > ltb){
-			cout << "OUT OF MEMORY!\n";
+			cout << "Memory out of bounds.\n";
 			err = true;
 			}
 			tb++;
 			gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 			operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-			availNum++;
+			;
 			} else {
-			cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+			cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 			err = TRUE;
 			}
 			}
@@ -1427,15 +1335,15 @@ void Parser::Expresion() {
 		o1.var_dim == o2.var_dim){
 		mem = btb + tb;
 		if(mem > ltb){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		tb++;
 		gen.push_back(Cuadruplo(op, o1.dir, o2.dir, mem));
 		operandos.push(CVariable("memoria" ,c.cubo[o1.var_type][o2.var_type][op], 0, mem));
-		availNum++;
+		;
 		} else {
-		cout << "TYPE MISMATCH! :" << o1.name << '\t' << o2.name << '\n';
+		cout << "Type mismatch :" << o1.name << '\t' << o2.name << '\n';
 		err = TRUE;
 		}
 		}
@@ -1471,7 +1379,7 @@ void Parser::Factor() {
 			dirProc[temp].att_mtd, 
 			dirProc[temp].dir));
 			} else {
-			cout << "UNDECLARED VARIABLE: " << temp << '\n';
+			cout << "Undeclared Variable: " << temp << '\n';
 			err = true;
 			}
 			if (la->kind == 34 /* "[" */ || la->kind == 51 /* "." */) {
@@ -1481,7 +1389,7 @@ void Parser::Factor() {
 					Arr2();
 				}
 			}
-		} else if (StartOf(5)) {
+		} else if (StartOf(6)) {
 			CTE();
 			string temp = conv(t->val);
 			operandos.push(CVariable(temp, ctype, 0, cts[temp].dir));
@@ -1498,21 +1406,21 @@ void Parser::Factor() {
 		switch (o.var_type){
 		case INT:	mem = bti + ti;
 		if(mem > lti){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		ti++;
 		break;
 		case DOUBLE:	mem = btd + td;
 		if(mem > ltd){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		td++;
 		break;
 		case BOOLEAN:	mem = btb + tb;
 		if(mem > ltb){
-		cout << "OUT OF MEMORY!\n";
+		cout << "Memory out of bounds.\n";
 		err = true;
 		}
 		tb++;
@@ -1535,6 +1443,56 @@ void Parser::Lista() {
 		}
 }
 
+void Parser::Param() {
+		string nameL; 
+		Tipo();
+		Expect(_idV);
+		nameL = conv(t->val);
+		if((dirProc.find(nameL) == dirProc.end()) && (dirProc[name].vars.find(nameL) == dirProc[name].vars.end())){
+		int mem = 0;
+		switch (type){
+		case INT:	mem = bli + li;
+		if(mem > lli){
+		cout << "Memory out of bounds.\n";
+		err = true;
+		}
+		li++;
+		break;
+		case DOUBLE:	mem = bld + ld;
+		if(mem > lld){
+		cout << "Memory out of bounds.\n";
+		err = true;
+		}
+		ld++;
+		break;
+		case STRING:	mem = bls + ls;
+		if(mem > lls){
+		cout << "Memory out of bounds.\n";
+		err = true;
+		}
+		ls++;
+		break;
+		case BOOLEAN:	mem = blb + lb;
+		if(mem > llb){
+		cout << "Memory out of bounds.\n";
+		err = true;
+		}
+		lb++;
+		break;
+		}
+		dirProc[name].vars.insert(VMAP::value_type(nameL, Variable(type, 0, mem)));
+		dirProc[name].params.push_back(Variable(type, 0, mem));
+		} else {
+		cout << "Previously declared variable. " << nameL << '\n';
+		err = TRUE;
+		}
+		
+		if (la->kind == 42 /* "," */) {
+			Get();
+			Param();
+		}
+}
+
 void Parser::Return() {
 		Expect(_tRet);
 		ExpOY();
@@ -1544,13 +1502,13 @@ void Parser::Return() {
 		gen.push_back(Cuadruplo(MR, operandos.top().dir, -1, dirProc[name].dirMem));
 		operandos.pop();
 		}else{
-		cout << "RETURN VALUE IS NOT THE EXPECTED TYPE!\n";
+		cout << "Return value is not the expected type.\n";
 		err = true;
 		}
 		}else{
 		err = true;
 		}
-		Expect(36 /* ";" */);
+		Expect(37 /* ";" */);
 }
 
 
@@ -1669,12 +1627,13 @@ bool Parser::StartOf(int s) {
 	const bool T = true;
 	const bool x = false;
 
-	static bool set[8][57] = {
+	static bool set[9][57] = {
 		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,x,x,T, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,T,T,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,x,x,T, x,x,T,T, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
-		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,T,x,x, x,x,T,x, x,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
+		{x,T,T,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,T,T, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
+		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,T,x,x, x,x,T,x, T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,x,x,x, x,T,T,T, T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,T,x,x, x,T,T,T, T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x},
 		{x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,T,T, T,T,x,x, x,x,x,x, x,x,x,x, x,x,x,x, T,T,x,x, x,x,x,x, x}
@@ -1734,8 +1693,8 @@ void Errors::SynErr(int line, int col, int n) {
 			case 33: s = coco_string_create(L"tEqu expected"); break;
 			case 34: s = coco_string_create(L"\"[\" expected"); break;
 			case 35: s = coco_string_create(L"\"]\" expected"); break;
-			case 36: s = coco_string_create(L"\";\" expected"); break;
-			case 37: s = coco_string_create(L"\"=\" expected"); break;
+			case 36: s = coco_string_create(L"\"=\" expected"); break;
+			case 37: s = coco_string_create(L"\";\" expected"); break;
 			case 38: s = coco_string_create(L"\"(\" expected"); break;
 			case 39: s = coco_string_create(L"\")\" expected"); break;
 			case 40: s = coco_string_create(L"\"{\" expected"); break;

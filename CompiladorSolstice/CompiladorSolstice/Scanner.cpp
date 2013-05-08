@@ -995,7 +995,7 @@ Token* Scanner::NextToken() {
 		case 106:
 			{t->kind = 35; break;}
 		case 107:
-			{t->kind = 36; break;}
+			{t->kind = 37; break;}
 		case 108:
 			{t->kind = 38; break;}
 		case 109:
@@ -1041,9 +1041,9 @@ Token* Scanner::NextToken() {
 			if (ch == L'+') {AddCh(); goto case_87;}
 			else {t->kind = 44; break;}
 		case 124:
-			recEnd = pos; recKind = 37;
+			recEnd = pos; recKind = 36;
 			if (ch == L'=') {AddCh(); goto case_92;}
-			else {t->kind = 37; break;}
+			else {t->kind = 36; break;}
 		case 125:
 			recEnd = pos; recKind = 53;
 			if (ch == L'*') {AddCh(); goto case_93;}

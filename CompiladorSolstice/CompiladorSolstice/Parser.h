@@ -127,6 +127,11 @@ string className;
 string objType;
 bool err;
 
+/* Funcion que convierte un wchar_t a un
+ * string.
+ * Param: wchar_t
+ * Return: string
+ */
 string conv(wchar_t* x){
 	std::wstring ws(x);
 	string s(ws.begin(), ws.end());
@@ -160,8 +165,6 @@ string conv(wchar_t* x){
 	void Con();
 	void Con2();
 	void ConG();
-	void Param();
-	void Init();
 	void CTE();
 	void CTES();
 	void Decl();
@@ -175,6 +178,7 @@ string conv(wchar_t* x){
 	void Expresion();
 	void Factor();
 	void Lista();
+	void Param();
 	void Return();
 
 	void Parse();
