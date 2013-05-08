@@ -1,3 +1,8 @@
+/* Clase que implementa la creacion de las estructuras de datos.
+ * Autores:		Jorge Salazar Saltijeral				A00945665
+ *				Veronica Alejandra Gonzalez Gonzalez	A01087523
+ * Compiladores Enero - Mayo 2013
+ */
 #include "Tabla.h"
 
 using namespace std;

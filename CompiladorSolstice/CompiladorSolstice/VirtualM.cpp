@@ -1,7 +1,14 @@
+/* Clase que lleva a cabo la ejecucion y creacion de la maquina virtual
+ * Autores:		Jorge Salazar Saltijeral				A00945665
+ *				Veronica Alejandra Gonzalez Gonzalez	A01087523
+ * Compiladores Enero - Mayo 2013
+ */
 #include "VirtualM.h"
 
+//Constructor 
 VirtualM::VirtualM(){}
 
+//Constructor Vacio
 VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 	prog = p;
 	cmlb = cmld = cmli = cmls = cmtb = cmtd = cmti = cmts = 0;
@@ -44,11 +51,19 @@ VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 	}
 }
 
+/* Funcion que indica que scope de memoria tiene la direccion
+ * Param: int direccion de memoria
+ * Return: int especificando el scope de memoria.
+ */
 int VirtualM::memory_type(int dir){
+	//Valida que la memoria local y temporal no hayan excedido su rango de memoria
+	//al momento de ejecutar diversas funciones
 	if(cmli > 2000 || cmld > 2000 || cmls > 2000 || cmlb > 200 ||
 		cmti > 2000 || cmtd > 2000 || cmts > 2000 || cmtb > 200){
 			error(0);
 	}
+
+	//Idenfica que scope de memoria tiene la direccion
 	if(dir >= bgi && dir < bli){
 		return GLOBAL;
 	}else if(dir >= bli && dir < bti){
@@ -66,7 +81,14 @@ int VirtualM::memory_type(int dir){
 	}
 }
 
+/* Funcion que regresa que tipo de dato representa la memoria
+ * Param: int direccion
+ * Param: int scope de memoria
+ * Return: int tipo de dato de la memoria
+ */
 int VirtualM::mvalue_type(int dir, int mt){
+	//En base al scope de la memoria valida los rangos de la memoria
+	//para identificar el tipo de dato.
 	switch (mt)	{
 	case GLOBAL: if(dir >= bgi && dir < bgd){
 		return INT;
@@ -123,50 +145,67 @@ int VirtualM::mvalue_type(int dir, int mt){
 	}
 }
 
+/* Funcion que recorre la lista de cuadruplos para ejecutarlos
+ */
 void VirtualM::run(){
+	/*For que permite imprimir el listado de cuadruplos.
 	for(cIt = 0; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
-		//cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
-	}
+		cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+	}*/
 	for(cIt = prog.at(0).op1; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
-		//cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+		//En base al codigo de operacion se llama a la funcion correspondiente.
 		switch (current.operador) {
-		case SUM : sum(); break;
-		case SUB : substration(); break;
-		case MUL : multiplication(); break;
-		case DIV : division(); break;
-		case MOD : module(); break;
-		case AND : and(); break;
-		case OR : or(); break;
-		case LT : less_than(); break;
-		case GT : greater_than(); break;
-		case EQ : equal_equal(); break;
-		case DIF : diference(); break;
-		case GEQ : greater_equal(); break;
-		case LEQ : less_equal(); break;
-		case APP : append(); break;
-		case ASI : asign(); break;
-		case GTT : go_to_true(); break;
-		case GTF : go_to_false(); break;
-		case GTO : go_to(); break;
-		case REA : read(); break;
-		case WRI : write(); break;
-		case ERA : era(); break;
-		case GSU : go_sub(); break;
-		case RET : end_module(); break;
-		case MR : return_value(); break;
-		case PAR : parameter(); break;
-		case VER : limits_array(); break;
-		case ACC : access();break;
-		case NOT: negation(); break;
-		case END: exit(0);
+		case SUM : sum(); break; // Lleva a cabo la suma
+		case SUB : substration(); break; //Lleva a cabo la resta
+		case MUL : multiplication(); break; //Lleva a cabo la multiplicacion
+		case DIV : division(); break; //Lleva a cabo la division
+		case MOD : module(); break; //Lleva a cabo la module
+		case AND : and(); break; //Lleva a cabo la operacion logica AND
+		case OR : or(); break; //Lleva a cabo la operacion logica OR
+		case LT : less_than(); break; //Lleva a cabo la comparacion menor que
+		case GT : greater_than(); break; //Lleva a cabo la compracion mayor que
+		case EQ : equal_equal(); break; //Lleva a cabo la igualdad
+		case DIF : diference(); break; //Lleva a cabo la diferencia
+		case GEQ : greater_equal(); break; //Lleva a cabo la compracion mayor igual que
+		case LEQ : less_equal(); break; //Lleva a cabo la compracion menor igual que
+		case APP : append(); break; //Lleva a cabo la concatenacion
+		case ASI : asign(); break; //Lleva a cabo la asignacion
+		case GTT : go_to_true(); break; //Lleva a cabo el salto cuando el valor es TRUE
+		case GTF : go_to_false(); break; //Lleva a cabo el salto cuando el valor es FALSE
+		case GTO : go_to(); break; //Lleva a cabo el salto de cuadruplos
+		case REA : read(); break; //Lleva a cabo la lectura
+		case WRI : write(); break; //Lleva a cabo la escritura
+		case ERA : era(); break; //Lleva a cabo la preparacion de funciones
+		case GSU : go_sub(); break; //Lleva a cabo la ejecucion de la funcion
+		case RET : end_module(); break; //Lleva a cabo el fin de la funcion
+		case MR : return_value(); break; //Lleva a cabo el registro del valor de retorno
+		case PAR : parameter(); break; //Lleva a cabo la asociacion de parametros
+		case VER : limits_array(); break; //Lleva a cabo la verficiacion de los limites del arreglo
+		case ACC : access();break; //Lleva a cabo la suma de las direcciones de memoria para el acceso de arreglos
+		case NOT: negation(); break; //Lleva a cabo la negacion de valores
+		case END: exit(0); //Lleva a cabo el fin del programa
 		default:
 			error(99);
 			break;
 		}
 	}
 }
+
+/* El siguiente listado de funciones llevan a cabo las operaciones marcadas por los codigos de operacion.
+ * El proceso de las funciones es similar en todas.
+ * 1. Obtiene el valor con el que se llevara a cabo la operacion del operando 1. Validando el scope de la memoria y el
+ *    tipo de dato que posee.
+ * 2. Obtiene el valor con el que se llevara a cabo la operacion del operando 2 en el caso de existir, ya que no todos los
+ *    codigos de operacion utilizan dos operandos.
+ * 3. Usando el valor registado como operando 3, se guarda el resultado de la operacion en ese registro de memoria.
+ * -- Algunos codigos de operacion no usan todos los operandos ya que debido a su funcionalidad solo requieren 1 o 2 operandos
+ *    para la ejecucion adecuada. Algunos casos particulares son el Go to, Go To False, Go To True, Era, Go Sub.
+ * -- El uso del switch permite buscar el valor de los operandos segun su scope y tipo de dato en base al valor de la memoria.
+ *    Dependiendo de la operacion que se llevara acabo se restringen el uso de los casos. La funciones solo marcan los casos con los 
+ *	  que debe ejecutar adecuadamente como una validacion adicional de la ejecucion.
+ */
 
 void VirtualM::sum(){
 	double o1, o2;	
@@ -3502,16 +3541,28 @@ void VirtualM::negation(){
 	}
 }
 
+/* Funcion que limpia los valores String omitiendo las comillas dobles
+ * Param: string s String que debe ser limpiado
+ * Return: string Mismo string sin las comillas al inicio y final del mismo
+ */
 string VirtualM::strClean(string s){
 	return s.substr(s.find_first_of('"')+1, s.find_last_of('"')-1);
 }
 
+/* Funcion que convierte un valor float a string 
+ * Param: float f valor numerico 
+ * Return: string Valor textual del numero
+ */
 string VirtualM::ftoa(float f){
 	std::ostringstream buff;
 	buff << f;
 	return buff.str();
 }
 
+/* Funcion que convierte un valor boolean a string
+ * Param: bool b Valor que se debe castear a string
+ * Return: string Valor boolean en formato string
+ */
 string VirtualM::btoa(bool b){
 	if(b)
 		return "true";
@@ -3519,6 +3570,9 @@ string VirtualM::btoa(bool b){
 		return "false";
 }
 
+/* Funcion que imprime los errores de ejecucion y termina la misma
+ * Param: int e Tipo de error a desplegar
+ */
 void VirtualM::error(int e) {
 	string desc = "";
 	switch (e) {

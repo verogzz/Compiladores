@@ -1,32 +1,38 @@
+/* Clase que crea el cubo semantico y carga las valores necesarios.
+ * Autores:		Jorge Salazar Saltijeral				A00945665
+ *				Veronica Alejandra Gonzalez Gonzalez	A01087523
+ * Compiladores Enero - Mayo 2013
+ */
 #include<iostream>
 #include "Cubo.h"
 
 Cubo::Cubo() {
-	/* Cubo[OP1][OP2][OPR] = TIPO
+	/*	Cubo[OP1][OP2][OPR] = TIPO
 	
-	OP#
-	INT		 0
-	DOUBLE	 1
-	STRING	 2
-	BOOL	 3
-	ERROR	-1
+		OP#
+		INT		 0
+		DOUBLE	 1
+		STRING	 2
+		BOOL	 3
+		ERROR	-1
 
-	OPERADOR
-	+		0
-	-		1
-	*		2
-	/		3
-	%		4
-	&		5
-	|		6
-	<		7
-	>		8
-	==		9
-	<>		10
-	>=		11
-	<=		12 
-	^		13
-	=		14*/
+		OPERADOR
+		+		0
+		-		1
+		*		2
+		/		3
+		%		4
+		&		5
+		|		6
+		<		7
+		>		8
+		==		9
+		<>		10
+		>=		11
+		<=		12 
+		^		13
+		=		14
+	*/
 
 	// INT
 	cubo[0][0][0] = 0; // int + int = int

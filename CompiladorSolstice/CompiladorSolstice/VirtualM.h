@@ -1,3 +1,9 @@
+/* Listado de prototipos para la maquina virtual
+ * Autores:		Jorge Salazar Saltijeral				A00945665
+ *				Veronica Alejandra Gonzalez Gonzalez	A01087523
+ * Compiladores Enero - Mayo 2013
+ */
+
 #ifndef VIRTUALM_H
 #define VIRTUALM_H
 
@@ -21,19 +27,19 @@ using namespace std;
 
 class VirtualM {
 public:
-	Cuadruplo current;
-	TABLE dirClasses;
-	CTS dirCtes;	
-	vector<Cuadruplo> prog;
-	Memoria m_global;
-	Memoria m_local;
-	Memoria m_temporal;
-	Memoria m_constante;
-	map<int, int> m_pointer;
-	map<int, int> m_obj;
-	unsigned int cIt;
-	stack<int> slines;
-	VirtualM();
+	Cuadruplo current;	//Cuadruplo actualmente en ejecucion
+	TABLE dirClasses;	//Directorio de clases
+	CTS dirCtes;		//Directorio de constantes
+	vector<Cuadruplo> prog;	//Listado de cuadruplos
+	Memoria m_global;	//Memoria Global
+	Memoria m_local;	//Memoria Local
+	Memoria m_temporal;	//Memoria Temporal
+	Memoria m_constante;	//Memoria Constantes
+	map<int, int> m_pointer; //Memoria Temporal Pointer
+	map<int, int> m_obj;	//Memoria Objetos
+	unsigned int cIt;	//Numero de cuadruplo actual
+	stack<int> slines;	//Stack de saltos en cuadruplos
+	VirtualM();	
 	VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p);
 	int memory_type(int dir);
 	int mvalue_type(int dir, int mt);
@@ -67,18 +73,18 @@ public:
 	void access();
 	void negation();
 private:
-	stack<Memoria> sTemp;
-	stack<Memoria> sLocal;
-	Memoria tTemp;
-	Memoria tLocal;
-	int cmli;
-	int cmld;
-	int cmls;
-	int cmlb;
-	int cmti;
-	int cmtd;
-	int cmts;
-	int cmtb;
+	stack<Memoria> sTemp;	//Pila de ejecucion Memoria Temporal
+	stack<Memoria> sLocal;	//Pila de ejecucion Memoria Local
+	Memoria tTemp;	//Memoria Auxiliar Temporal
+	Memoria tLocal;	//Memoria Auxiliar Local
+	int cmli;	//Contador de memoria local int
+	int cmld;	//Contador de memoria local double
+	int cmls;	//Contador de memoria local string
+	int cmlb;	//Contador de memoria local boolean
+	int cmti;	//Contador de memoria temporal int
+	int cmtd;	//Contador de memoria temporal double
+	int cmts;	//Contador de memoria temporal string
+	int cmtb;	//Contador de memoria temporal boolean
 	string strClean(string s);
 	string ftoa(float f);
 	string btoa(bool b);

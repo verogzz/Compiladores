@@ -86,46 +86,42 @@ public:
 	Token *t;			// last recognized token
 	Token *la;			// lookahead token
 
-CTABLE dirProc;
-TABLE dirGral;
-CVariable paramx;
-Cubo c;
-stack<int> oper;
-stack<CVariable> operandos;
-stack<int> saltos;
-stack<int> ifs;
-CTS cts;
-vector<CVariable> t_params;
-vector<Cuadruplo> gen;
-
-int type;
-int ctype;
-int vis;
-int dim;
-int availNum;
-int gi;
-int gd;
-int gb;
-int gs;
-int li;
-int ld;
-int lb;
-int ls;
-int ti;
-int td;
-int tb;
-int ts;
-int tp;
-int mo;
-int ci;
-int cd;
-int cb;
-int cs;
-int classCount;
-string name;
-string className;
-string objType;
-bool err;
+CTABLE dirProc; 	//Directorio de procedimientos
+TABLE dirGral; 		//Directorio de clases
+Cubo c;				//Cubo semantico
+stack<int> oper;	//Pila de operadores
+stack<CVariable> operandos;	//Pila de operandos
+stack<int> saltos;	//Pila de saltos para el controles de flujo
+stack<int> ifs;		//Pila para if's anidados
+CTS cts;			//Directorio de constantes
+vector<CVariable> t_params;	//Lista de parametros
+vector<Cuadruplo> gen;	//Lista de cuadruplos
+int type;	//Tipo de atributo/metodo
+int ctype;	//Tipo de constante
+int vis;	//Visibilidad
+int dim;	//Dimension
+int gi;		//Contador de global int
+int gd;		//Contador de global double
+int gb;		//Contador de global boolean
+int gs;		//Contador de global string
+int li;		//Contador de local int
+int ld;		//Contador de local double
+int lb;		//Contador de local boolean
+int ls;		//Contador de local string
+int ti;		//Contador de temporal int
+int td;		//Contador de temporal double
+int tb;		//Contador de temporal boolean
+int ts;		//Contador de temporal string
+int tp;		//Contador de temporal pointer
+int mo;		//Contador de memoria de objetos
+int ci;		//Contador de constante int
+int cd;		//Contador de constante double
+int cb;		//Contador de constante boolean
+int cs;		//Contador de constante string
+int classCount;	//Contador de clases
+string name;	//Variable para nombres de metodos
+string className;	//Variable nombres de clases
+string objType;		//Variable para identificar tipo de objeto
 
 /* Funcion que convierte un wchar_t a un
  * string.
