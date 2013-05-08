@@ -1,8 +1,8 @@
 /* Clase que lleva a cabo la ejecucion y creacion de la maquina virtual
- * Autores:		Jorge Salazar Saltijeral				A00945665
- *				Veronica Alejandra Gonzalez Gonzalez	A01087523
- * Compiladores Enero - Mayo 2013
- */
+* Autores:		Jorge Salazar Saltijeral				A00945665
+*				Veronica Alejandra Gonzalez Gonzalez	A01087523
+* Compiladores Enero - Mayo 2013
+*/
 #include "VirtualM.h"
 
 //Constructor 
@@ -52,9 +52,9 @@ VirtualM::VirtualM(TABLE dirGral, CTS ctes, vector<Cuadruplo> p){
 }
 
 /* Funcion que indica que scope de memoria tiene la direccion
- * Param: int direccion de memoria
- * Return: int especificando el scope de memoria.
- */
+* Param: int direccion de memoria
+* Return: int especificando el scope de memoria.
+*/
 int VirtualM::memory_type(int dir){
 	//Valida que la memoria local y temporal no hayan excedido su rango de memoria
 	//al momento de ejecutar diversas funciones
@@ -82,10 +82,10 @@ int VirtualM::memory_type(int dir){
 }
 
 /* Funcion que regresa que tipo de dato representa la memoria
- * Param: int direccion
- * Param: int scope de memoria
- * Return: int tipo de dato de la memoria
- */
+* Param: int direccion
+* Param: int scope de memoria
+* Return: int tipo de dato de la memoria
+*/
 int VirtualM::mvalue_type(int dir, int mt){
 	//En base al scope de la memoria valida los rangos de la memoria
 	//para identificar el tipo de dato.
@@ -146,12 +146,12 @@ int VirtualM::mvalue_type(int dir, int mt){
 }
 
 /* Funcion que recorre la lista de cuadruplos para ejecutarlos
- */
+*/
 void VirtualM::run(){
 	/*For que permite imprimir el listado de cuadruplos.
 	for(cIt = 0; cIt < prog.size(); cIt++){
-		current = prog.at(cIt);
-		cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
+	current = prog.at(cIt);
+	cout << cIt << '\t' << current.operador << '\t' << current.op1 << '\t' << current.op2 << '\t' << current.res << '\n';
 	}*/
 	for(cIt = prog.at(0).op1; cIt < prog.size(); cIt++){
 		current = prog.at(cIt);
@@ -194,18 +194,18 @@ void VirtualM::run(){
 }
 
 /* El siguiente listado de funciones llevan a cabo las operaciones marcadas por los codigos de operacion.
- * El proceso de las funciones es similar en todas.
- * 1. Obtiene el valor con el que se llevara a cabo la operacion del operando 1. Validando el scope de la memoria y el
- *    tipo de dato que posee.
- * 2. Obtiene el valor con el que se llevara a cabo la operacion del operando 2 en el caso de existir, ya que no todos los
- *    codigos de operacion utilizan dos operandos.
- * 3. Usando el valor registado como operando 3, se guarda el resultado de la operacion en ese registro de memoria.
- * -- Algunos codigos de operacion no usan todos los operandos ya que debido a su funcionalidad solo requieren 1 o 2 operandos
- *    para la ejecucion adecuada. Algunos casos particulares son el Go to, Go To False, Go To True, Era, Go Sub.
- * -- El uso del switch permite buscar el valor de los operandos segun su scope y tipo de dato en base al valor de la memoria.
- *    Dependiendo de la operacion que se llevara acabo se restringen el uso de los casos. La funciones solo marcan los casos con los 
- *	  que debe ejecutar adecuadamente como una validacion adicional de la ejecucion.
- */
+* El proceso de las funciones es similar en todas.
+* 1. Obtiene el valor con el que se llevara a cabo la operacion del operando 1. Validando el scope de la memoria y el
+*    tipo de dato que posee.
+* 2. Obtiene el valor con el que se llevara a cabo la operacion del operando 2 en el caso de existir, ya que no todos los
+*    codigos de operacion utilizan dos operandos.
+* 3. Usando el valor registado como operando 3, se guarda el resultado de la operacion en ese registro de memoria.
+* -- Algunos codigos de operacion no usan todos los operandos ya que debido a su funcionalidad solo requieren 1 o 2 operandos
+*    para la ejecucion adecuada. Algunos casos particulares son el Go to, Go To False, Go To True, Era, Go Sub.
+* -- El uso del switch permite buscar el valor de los operandos segun su scope y tipo de dato en base al valor de la memoria.
+*    Dependiendo de la operacion que se llevara acabo se restringen el uso de los casos. La funciones solo marcan los casos con los 
+*	  que debe ejecutar adecuadamente como una validacion adicional de la ejecucion.
+*/
 
 void VirtualM::sum(){
 	double o1, o2;	
@@ -3542,17 +3542,17 @@ void VirtualM::negation(){
 }
 
 /* Funcion que limpia los valores String omitiendo las comillas dobles
- * Param: string s String que debe ser limpiado
- * Return: string Mismo string sin las comillas al inicio y final del mismo
- */
+* Param: string s String que debe ser limpiado
+* Return: string Mismo string sin las comillas al inicio y final del mismo
+*/
 string VirtualM::strClean(string s){
 	return s.substr(s.find_first_of('"')+1, s.find_last_of('"')-1);
 }
 
 /* Funcion que convierte un valor float a string 
- * Param: float f valor numerico 
- * Return: string Valor textual del numero
- */
+* Param: float f valor numerico 
+* Return: string Valor textual del numero
+*/
 string VirtualM::ftoa(float f){
 	std::ostringstream buff;
 	buff << f;
@@ -3560,9 +3560,9 @@ string VirtualM::ftoa(float f){
 }
 
 /* Funcion que convierte un valor boolean a string
- * Param: bool b Valor que se debe castear a string
- * Return: string Valor boolean en formato string
- */
+* Param: bool b Valor que se debe castear a string
+* Return: string Valor boolean en formato string
+*/
 string VirtualM::btoa(bool b){
 	if(b)
 		return "true";
@@ -3571,8 +3571,8 @@ string VirtualM::btoa(bool b){
 }
 
 /* Funcion que imprime los errores de ejecucion y termina la misma
- * Param: int e Tipo de error a desplegar
- */
+* Param: int e Tipo de error a desplegar
+*/
 void VirtualM::error(int e) {
 	string desc = "";
 	switch (e) {
